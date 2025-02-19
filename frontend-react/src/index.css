@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .all-\[unset\] {
+    all: unset;
+  }
+}
+
+:root {
+  --default-white: rgba(255, 255, 255, 1);
+  --surface-overlay: rgba(33, 33, 33, 0.08);
+  --text-gray-100: rgba(244, 245, 247, 1);
+  --text-gray-300: rgba(217, 219, 225, 1);
+}
+
+body {
+  @apply font-sans;
+}
