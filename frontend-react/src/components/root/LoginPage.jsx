@@ -8,7 +8,7 @@ function LoginPage() {
     <div>
       <Header />
       <div className="flex overflow-hidden flex-col items-center bg-white">
-        <main className="flex flex-col justify-center items-center p-7 my-7 mx-10 max-md:px-5 max-md:mt-10 rounded-md">
+        <main className="flex flex-col justify-center items-center mx-10 max-md:px-5 max-md:mt-10 rounded-md">
           <LoginForm />
         </main>
       </div>
