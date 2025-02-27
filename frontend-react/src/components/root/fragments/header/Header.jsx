@@ -35,7 +35,7 @@ export default function Header() {
                 alt="HCMUT Official Logo"
               />
               <h2 className="text-base md:text-2xl font-semibold hidden md:block">
-                SMART HOME
+                SMART FARM
               </h2>
             </a>
           </div>

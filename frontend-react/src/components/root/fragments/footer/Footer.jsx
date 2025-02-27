@@ -10,12 +10,12 @@ function Footer() {
     {
       icon: "src/images/calling-footer.png",
       alt: "phone icon",
-      text: "(028) 38 651 670 - (028) 38 647 256 (Ext: 5258, 5234)",
+      text: "(028) 38 651 670 - (028) 38 647 256",
     },
     {
       icon: "src/images/email-footer.png",
       alt: "email icon",
-      text: "smarthome@gmail.vn",
+      text: "smartfarm@gmail.vn"
     },
   ];
 
@@ -33,7 +33,7 @@ function Footer() {
           {/* Smart Home Service Section */}
           <div className="flex flex-col items-center space-y-4">
             <h3 className="text-lg sm:text-xl md:text-2xl font-bold tracking-wide text-center">
-              SMART HOME SERVICE
+              SMART FARM SERVICE
             </h3>
             <img
               src="src/images/logo-page.avif"
@@ -72,7 +72,7 @@ function Footer() {
       <div className="bg-[#5A4637] text-white py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center space-y-2 md:space-y-0">
           <p className="text-sm sm:text-base font-medium text-center md:text-left">
-            &copy; 2007-2025 SMART-HOME. All rights reserved.
+            &copy; 2007-2025 SMART-FARM. All rights reserved.
           </p>
           <div className="flex items-center space-x-4">
             <span className="text-xs sm:text-sm">Developed by IT-HCMUT</span>

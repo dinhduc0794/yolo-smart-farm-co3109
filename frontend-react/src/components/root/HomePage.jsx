@@ -44,7 +44,7 @@ const ImageCarousel = () => {
       {/* Overlay with text */}
       <div className="absolute inset-0 flex justify-center items-center bg-black/15">
         <h2 className="text-2xl text-amber-100 font-['Inter'] md:text-5xl font-black text-center text-stroke-black">
-          TIỆN ÍCH <br/>QUẢN LÝ NGÔI NHÀ CỦA BẠN
+          TIỆN ÍCH <br/>QUẢN LÝ TRANG TRẠI CỦA BẠN
         </h2>
       </div>
 

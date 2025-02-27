@@ -13,14 +13,14 @@ export default function HeaderMain() {
           />
           {/* Ẩn chữ "SMART HOME" trên màn hình nhỏ */}
           <h2 className="ml-3 md:ml-4 text-base md:text-2xl font-semibold hidden md:block text-[#5A4637]">
-            SMART HOME
+            SMART FARM
           </h2>
         </a>
       </div>
 
       {/* Header Text Section */}
       <h1 className="text-[#5A4637] text-base md:text-2xl font-black font-['Inter'] text-center drop-shadow-xl flex-1 mx-4">
-        Dịch vụ quản lý ngôi nhà của bạn một cách nhanh chóng 
+        Dịch vụ quản lý trang trại của bạn một cách nhanh chóng 
       </h1>
     </div>
   );
