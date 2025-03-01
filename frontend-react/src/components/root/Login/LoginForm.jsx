@@ -14,19 +14,19 @@ function LoginForm() {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen">
-      <div className="flex bg-white shadow-md rounded-lg overflow-hidden w-[800px]">
-        {/* Cột 1: Hình ảnh / Logo */}
-        <div className="w-1/3 bg-[#B08B4F] flex items-center justify-center p-6">
+    <div className="flex items-center justify-center h-screen p-4">
+      <div className="flex flex-col md:flex-row bg-white shadow-md rounded-lg overflow-hidden w-full max-w-md md:max-w-3xl">
+        {/* Logo/Image Section - Full width on mobile, 1/3 width on desktop */}
+        <div className="w-full md:w-1/3 bg-[#B08B4F] flex items-center justify-center p-6">
           <img
             src="src/images/logo-page.avif"
             alt="Logo"
-            className="object-contain w-[150px] sm:w-[180px]"
+            className="object-contain w-[150px] sm:w-[400px]"
           />
         </div>
 
-        {/* Cột 2: Form Đăng nhập */}
-        <form className="w-2/3 p-6 flex flex-col" onSubmit={handleSubmit}>
+        {/* Form Section - Full width on mobile, 2/3 width on desktop */}
+        <form className="w-full md:w-2/3 p-6 flex flex-col" onSubmit={handleSubmit}>
           <h2 className="text-xl font-semibold text-[#5A4637] mb-4 text-center">
             Đăng nhập
           </h2>

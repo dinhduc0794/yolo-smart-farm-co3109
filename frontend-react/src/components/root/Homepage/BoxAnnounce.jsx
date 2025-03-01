@@ -4,14 +4,14 @@ import { Award, Gift, Calendar, ArrowRight } from 'lucide-react';
 // Dữ liệu các tính năng
 const featuresData = [
   {
-    title: "Quản Lý Thiết Bị",
-    description: "Dễ dàng kiểm soát tất cả thiết bị thông minh trong nhà bạn từ một ứng dụng duy nhất. Điều chỉnh ánh sáng, nhiệt độ, camera an ninh và hơn thế nữa chỉ với một vài thao tác trên điện thoại hoặc giọng nói.",
+    title: "Quản Lý Nông Trại",
+    description: "Dễ dàng kiểm soát tất cả thiết bị thông minh trong nông trại của bạn từ một ứng dụng duy nhất. Điều chỉnh hệ thống tưới tiêu, nhiệt độ nhà kính, camera giám sát và hơn thế nữa chỉ với một vài thao tác trên điện thoại hoặc giọng nói.",
     icon: <Award className="w-6 h-6 text-white" aria-label="Award Icon" />,
     backgroundImage: "src/images/img-box-1.webp"
   },
   {
-    title: "Tiết Kiệm Năng Lượng",
-    description: "Hệ thống Smart Home giúp tối ưu hóa năng lượng tiêu thụ bằng cách tự động điều chỉnh thiết bị theo nhu cầu sử dụng. Nhận thông báo và báo cáo chi tiết để quản lý hiệu quả hơn.",
+    title: "Tiết Kiệm Tài Nguyên",
+    description: "Hệ thống Smart Farm giúp tối ưu hóa việc sử dụng nước, phân bón và năng lượng bằng cách tự động điều chỉnh theo điều kiện thời tiết và nhu cầu của cây trồng. Nhận thông báo và báo cáo chi tiết để quản lý hiệu quả hơn.",
     icon: <Gift className="w-6 h-6 text-white" aria-label="Gift Icon" />,
     backgroundImage: "src/images/img-box-2.webp"
   }
@@ -20,15 +20,15 @@ const featuresData = [
 // Dữ liệu tin tức
 const newsData = [
   {
-    title: "Triển lãm Smart Home 2025",
+    title: "Triển lãm Nông Nghiệp Thông Minh 2025",
     date: "25/03/2025",
-    description: "Sự kiện trưng bày các công nghệ nhà thông minh mới nhất với sự tham gia của các thương hiệu hàng đầu.",
+    description: "Sự kiện trưng bày các công nghệ nông nghiệp thông minh mới nhất với sự tham gia của các thương hiệu hàng đầu trong lĩnh vực.",
     image: "src/images/news-1.png"
   },
   {
-    title: "Ra mắt ứng dụng Smart Home phiên bản mới",
+    title: "Ra mắt ứng dụng Smart Farm phiên bản mới",
     date: "20/03/2025",
-    description: "Cập nhật với giao diện người dùng được cải tiến và thêm nhiều tính năng thông minh mới.",
+    description: "Cập nhật với giao diện người dùng được cải tiến và thêm nhiều tính năng phân tích dữ liệu nông nghiệp thông minh.",
     image: "src/images/news-2.jpg"
   }
 ];
@@ -101,12 +101,12 @@ const CheckIcon = () => (
   </svg>
 );
 
-// Component Chính SmartHomeService
-const SmartHomeService = () => (
+// Component Chính SmartFarmService
+const SmartFarmService = () => (
   <div className="flex flex-col w-full max-w-7xl mx-auto p-6 space-y-8">
     <div className="space-y-4">
       <h1 className="text-2xl font-bold text-center">
-        Smart Home Service - Trải nghiệm quản lý ngôi nhà thông minh
+        Smart Farm Service - Trải nghiệm quản lý nông trại thông minh
       </h1>
     </div>
 
@@ -114,10 +114,10 @@ const SmartHomeService = () => (
       <div className="flex-1 space-y-4">
         <SectionHeading
           icon={<CheckIcon />}
-          title="An Toàn & Tiện Nghi"
+          title="Hiệu Quả & Bền Vững"
         />
         <p className="text-gray-600 leading-relaxed w-1/2">
-          Giữ cho ngôi nhà của bạn luôn an toàn với hệ thống giám sát thông minh, cảm biến và thông báo thời gian thực. Điều khiển mọi thiết bị từ xa giúp cuộc sống tiện lợi hơn bao giờ hết.
+          Tối ưu hóa sản xuất nông nghiệp với hệ thống giám sát thông minh, cảm biến độ ẩm đất, nhiệt độ và ánh sáng. Phân tích dữ liệu thời gian thực giúp đưa ra quyết định chính xác, tăng năng suất và phát triển bền vững.
         </p>
       </div>
     </section>
@@ -154,4 +154,4 @@ const SmartHomeService = () => (
   </div>
 );
 
-export default SmartHomeService;
+export default SmartFarmService;

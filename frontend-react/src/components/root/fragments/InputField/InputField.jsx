@@ -70,7 +70,7 @@ InputField.propTypes = {
   showPasswordToggle: PropTypes.bool,
   showPassword: PropTypes.bool,
   onTogglePassword: PropTypes.func,
-  value: PropTypes.string,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   onChange: PropTypes.func,
 };
 
