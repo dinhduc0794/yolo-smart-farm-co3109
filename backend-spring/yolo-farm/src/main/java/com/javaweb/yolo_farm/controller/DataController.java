@@ -21,11 +21,6 @@ public class DataController {
         return SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
     }
 
-    @GetMapping("/hello")
-    public ResponseEntity<Map<String, String>> hello() {
-        return ResponseEntity.ok(Map.of("message", "Hello"));
-    }
-
     @GetMapping("/{factor}/mode")
     public ResponseEntity<Map<String, Object>> getMode(@PathVariable String factor) {
         return ResponseEntity.ok(dataService.getMode(getUserId(), factor));

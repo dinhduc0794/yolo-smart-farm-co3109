@@ -26,12 +26,16 @@ public class AuthController {
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<UserResponse> signIn(@RequestBody SignInRequest request) {
+    public ResponseEntity<?> signIn(@RequestBody SignInRequest request) {
         try {
             UserResponse response = authService.signIn(request);
             return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400).body("Invalid email or password");
         } catch (Exception e) {
-            return ResponseEntity.status(400).body(null);
+            e.printStackTrace(); // In lỗi ra log để debug
+            return ResponseEntity.status(500).body("Internal Server Error");
         }
     }
+
 }
