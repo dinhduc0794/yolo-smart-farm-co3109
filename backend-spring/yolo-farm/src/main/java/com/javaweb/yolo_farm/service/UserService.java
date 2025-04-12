@@ -1,13 +1,15 @@
 package com.javaweb.yolo_farm.service;
 
-import com.javaweb.yolo_farm.dto.UpdatePasswordRequest;
-import com.javaweb.yolo_farm.dto.UpdateUserRequest;
-import com.javaweb.yolo_farm.dto.response.UserResponse;
+import com.javaweb.yolo_farm.dto.request.UpdatePasswordRequest;
+import com.javaweb.yolo_farm.dto.request.UpdateUserRequest;
 import com.javaweb.yolo_farm.model.User;
 import com.javaweb.yolo_farm.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class UserService {
@@ -18,21 +20,12 @@ public class UserService {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
-    public UserResponse getUser(String userId) {
-        User user = userRepository.findById(userId)
+    public User getUser(String userId) {
+        return userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        UserResponse response = new UserResponse();
-        response.setId(user.getId());
-        response.setName(user.getName());
-        response.setEmail(user.getEmail());
-        response.setFollowers(user.getAddCart());
-        response.setFollowing(user.getAddCart());
-        response.setPic(user.getPic());
-        response.setPhoneno(user.getPhoneno());
-        return response;
     }
 
-    public UserResponse updateUser(String userId, UpdateUserRequest request) {
+    public Map<String, String> updateUser(String userId, UpdateUserRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -46,14 +39,15 @@ public class UserService {
         user.setPhoneno(request.getPhoneno());
         userRepository.save(user);
 
-        UserResponse response = new UserResponse();
-        response.setName(user.getName());
-        response.setEmail(user.getEmail());
-        response.setPhoneno(user.getPhoneno());
+        Map<String, String> response = new HashMap<>();
+        response.put("name", user.getName());
+        response.put("email", user.getEmail());
+        response.put("address", user.getAddress());
+        response.put("phoneno", user.getPhoneno());
         return response;
     }
 
-    public String updatePassword(String userId, UpdatePasswordRequest request) {
+    public Map<String, String> updatePassword(String userId, UpdatePasswordRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -63,6 +57,6 @@ public class UserService {
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
-        return "User info update successfully";
+        return Map.of("message", "User info update successfully");
     }
 }

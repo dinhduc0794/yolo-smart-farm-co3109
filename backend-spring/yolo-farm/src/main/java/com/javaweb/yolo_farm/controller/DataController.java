@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/data")
+@RequestMapping("/api")
 public class DataController {
 
     @Autowired
@@ -21,25 +21,33 @@ public class DataController {
         return SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
     }
 
+    @GetMapping("/hello")
+    public ResponseEntity<?> hello() {
+        return ResponseEntity.ok("Hello World");
+    }
+
     @GetMapping("/{factor}/mode")
-    public ResponseEntity<Map<String, Object>> getMode(@PathVariable String factor) {
-        return ResponseEntity.ok(dataService.getMode(getUserId(), factor));
+    public ResponseEntity<?> getMode(@PathVariable String factor) {
+        try {
+            return ResponseEntity.ok(dataService.getMode(getUserId(), factor));
+        } catch (Exception e) {
+            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
+        }
     }
 
     @PutMapping("/{factor}/mode")
-    public ResponseEntity<Map<String, Object>> putMode(@PathVariable String factor, @RequestBody Map<String, String> body) {
-        String reqdevice = body.get("reqdevice");
-        if (reqdevice == null) {
-            return ResponseEntity.status(404).body(Map.of("error", "Device not found"));
+    public ResponseEntity<?> putMode(@PathVariable String factor, @RequestBody Map<String, String> body) {
+        try {
+            return ResponseEntity.ok(dataService.putMode(getUserId(), factor));
+        } catch (Exception e) {
+            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
         }
-        return ResponseEntity.ok(dataService.putMode(getUserId(), reqdevice));
     }
 
     @PostMapping("/{factor}/mode")
-    public ResponseEntity<Map<String, String>> postMode(@PathVariable String factor, @RequestBody ModeRequest request) {
+    public ResponseEntity<?> postMode(@PathVariable String factor, @RequestBody ModeRequest request) {
         try {
-            String message = dataService.postMode(getUserId(), request, factor);
-            return ResponseEntity.ok(Map.of("message", message));
+            return ResponseEntity.ok(dataService.postMode(getUserId(), request, factor));
         } catch (Exception e) {
             return ResponseEntity.status(400).body(Map.of("error", e.getMessage()));
         }
@@ -48,8 +56,7 @@ public class DataController {
     @GetMapping("/{factor}/current")
     public ResponseEntity<?> getCurrent(@PathVariable String factor) {
         try {
-            double value = dataService.getCurrent(getUserId(), factor);
-            return ResponseEntity.ok(Map.of("value", value));
+            return ResponseEntity.ok(dataService.getCurrent(getUserId(), factor));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
@@ -58,35 +65,37 @@ public class DataController {
     @PostMapping("/{factor}/refresh")
     public ResponseEntity<?> refresh(@PathVariable String factor) {
         try {
-            double value = dataService.refresh(getUserId(), factor);
-            return ResponseEntity.ok(Map.of("value", value));
+            return ResponseEntity.ok(dataService.refresh(getUserId(), factor));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
     }
 
     @GetMapping("/{factor}/threshold")
-    public ResponseEntity<Map<String, Double>> getThreshold(@PathVariable String factor) {
-        return ResponseEntity.ok(dataService.getThreshold(getUserId(), factor));
+    public ResponseEntity<?> getThreshold(@PathVariable String factor) {
+        try {
+            return ResponseEntity.ok(dataService.getThreshold(getUserId(), factor));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
     }
 
     @PostMapping("/{factor}/threshold")
-    public ResponseEntity<Map<String, String>> postThreshold(@PathVariable String factor, @RequestBody ThresholdRequest request) {
+    public ResponseEntity<?> postThreshold(@PathVariable String factor, @RequestBody ThresholdRequest request) {
         try {
-            String message = dataService.postThreshold(getUserId(), factor, request);
-            return ResponseEntity.ok(Map.of("message", message));
+            return ResponseEntity.ok(dataService.postThreshold(getUserId(), factor, request));
         } catch (Exception e) {
             return ResponseEntity.status(400).body(Map.of("error", e.getMessage()));
         }
     }
 
     @PostMapping("/mode")
-    public ResponseEntity<Map<String, String>> toggleMode(@RequestBody ModeRequest request) {
-        if (request.getReqdevice() == null) {
-            return ResponseEntity.status(404).body(Map.of("error", "Device not found"));
+    public ResponseEntity<?> toggleMode(@RequestBody ModeRequest request) {
+        try {
+            return ResponseEntity.ok(dataService.toggleMode(getUserId(), request));
+        } catch (Exception e) {
+            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
         }
-        String message = dataService.toggleMode(getUserId(), request);
-        return ResponseEntity.ok(Map.of("message", message));
     }
 
     @GetMapping("/mode")

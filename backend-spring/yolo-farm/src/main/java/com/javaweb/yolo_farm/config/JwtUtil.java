@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
-import java.util.Base64;
 import java.util.Date;
 
 @Component
@@ -16,14 +15,11 @@ public class JwtUtil {
 
     private final Key key;
 
-    @Value("${secret.key}")
-    private String secretKey;
-
     public JwtUtil(@Value("${secret.key}") String secretKey) {
-        this.key = Keys.hmacShaKeyFor(Base64.getDecoder().decode(secretKey));
+        this.key = Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
-    private final long JWT_EXPIRATION = 86400000; // 24 giờ
+    private final long JWT_EXPIRATION = 604800000; // 7 ngày
 
     public String generateToken(String userId) {
         return Jwts.builder()

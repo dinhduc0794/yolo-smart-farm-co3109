@@ -6,7 +6,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -25,26 +24,25 @@ public class SystemController {
         try {
             return ResponseEntity.ok(systemService.getStats(getUserId()));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(500).body(Map.of("error", "Internal server error"));
         }
     }
 
     @GetMapping("/systemmode")
-    public ResponseEntity<Map<String, String>> getSystemMode() {
+    public ResponseEntity<?> getSystemMode() {
         try {
             return ResponseEntity.ok(systemService.getSystemMode(getUserId()));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(500).body(Map.of("error", "Internal server error"));
         }
     }
 
     @PostMapping("/systemmode")
-    public ResponseEntity<Map<String, String>> setSystemMode() {
+    public ResponseEntity<?> setSystemMode() {
         try {
-            String message = systemService.setSystemMode(getUserId());
-            return ResponseEntity.ok(Map.of("message", message));
+            return ResponseEntity.ok(systemService.setSystemMode(getUserId()));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(500).body(Map.of("error", "Internal server error"));
         }
     }
 }

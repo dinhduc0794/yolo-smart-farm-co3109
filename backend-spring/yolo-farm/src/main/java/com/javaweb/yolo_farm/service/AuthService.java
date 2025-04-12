@@ -2,14 +2,15 @@ package com.javaweb.yolo_farm.service;
 
 import com.javaweb.yolo_farm.dto.request.SignInRequest;
 import com.javaweb.yolo_farm.dto.request.SignUpRequest;
-import com.javaweb.yolo_farm.dto.request.SignUpRequest;
-import com.javaweb.yolo_farm.dto.response.UserResponse;
 import com.javaweb.yolo_farm.model.User;
 import com.javaweb.yolo_farm.repository.UserRepository;
-import com.javaweb.yolo_farm.util.JwtUtil;
+import com.javaweb.yolo_farm.config.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class AuthService {
@@ -23,9 +24,13 @@ public class AuthService {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
-    public String signUp(SignUpRequest request) {
+    public Map<String, String> signUp(SignUpRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("User already exists with that email");
+            return Map.of("error", "User already exists with that email");
+        }
+        if (request.getEmail() == null || request.getPassword() == null || request.getName() == null ||
+                request.getAddress() == null || request.getPhoneno() == null) {
+            return Map.of("error", "Please add all the Credential");
         }
 
         User user = new User();
@@ -34,30 +39,28 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setAddress(request.getAddress());
         user.setPhoneno(request.getPhoneno());
-
         userRepository.save(user);
-        return "saved successfully";
+        return Map.of("message", "saved successfully");
     }
 
-    public UserResponse signIn(SignInRequest request) {
+    public Map<String, Object> signIn(SignInRequest request) {
+        if (request.getEmail() == null || request.getPassword() == null) {
+            return Map.of("error", "please add email or password");
+        }
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid Email or password"));
-
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid Email or password");
+                .orElse(null);
+        if (user == null || !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            return Map.of("error", "Invalid Email or password");
         }
 
         String token = jwtUtil.generateToken(user.getId());
-        UserResponse response = new UserResponse();
-        response.setId(user.getId());
-        response.setName(user.getName());
-        response.setEmail(user.getEmail());
-        response.setFollowers(user.getAddCart()); // followers không có trong model, dùng addCart thay thế
-        response.setFollowing(user.getAddCart()); // following không có trong model, dùng addCart thay thế
-        response.setPic(user.getPic());
-        response.setPhoneno(user.getPhoneno());
-
-        response.setId(token); // Lưu token vào id để trả về
-        return response;
+        Map<String, Object> userMap = new HashMap<>();
+        userMap.put("id", user.getId());
+        userMap.put("name", user.getName());
+        userMap.put("email", user.getEmail());
+        userMap.put("phoneno", user.getPhoneno());
+        userMap.put("address", user.getAddress());
+        userMap.put("pic", user.getPic());
+        return Map.of("token", token, "user", userMap);
     }
 }

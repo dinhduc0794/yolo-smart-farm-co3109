@@ -2,7 +2,6 @@ package com.javaweb.yolo_farm.controller;
 
 import com.javaweb.yolo_farm.dto.request.SignInRequest;
 import com.javaweb.yolo_farm.dto.request.SignUpRequest;
-import com.javaweb.yolo_farm.dto.response.UserResponse;
 import com.javaweb.yolo_farm.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,26 +15,12 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<String> signUp(@RequestBody SignUpRequest request) {
-        try {
-            String message = authService.signUp(request);
-            return ResponseEntity.ok(message);
-        } catch (Exception e) {
-            return ResponseEntity.status(422).body(e.getMessage());
-        }
+    public ResponseEntity<?> signUp(@RequestBody SignUpRequest request) {
+        return ResponseEntity.status(422).body(authService.signUp(request));
     }
 
     @PostMapping("/signin")
     public ResponseEntity<?> signIn(@RequestBody SignInRequest request) {
-        try {
-            UserResponse response = authService.signIn(request);
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(400).body("Invalid email or password");
-        } catch (Exception e) {
-            e.printStackTrace(); // In lỗi ra log để debug
-            return ResponseEntity.status(500).body("Internal Server Error");
-        }
+        return ResponseEntity.ok(authService.signIn(request));
     }
-
 }

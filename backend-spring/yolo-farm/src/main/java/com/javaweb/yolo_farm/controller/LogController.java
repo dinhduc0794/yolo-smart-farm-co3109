@@ -23,30 +23,29 @@ public class LogController {
     }
 
     @GetMapping("/log")
-    public ResponseEntity<List<LogResponse>> getLogs() {
+    public ResponseEntity<?> getLogs() {
         try {
             return ResponseEntity.ok(logService.getLogs(getUserId()));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(null);
+            return ResponseEntity.status(500).body(Map.of("error", "Internal server error"));
         }
     }
 
     @GetMapping("/notification")
-    public ResponseEntity<List<NotificationResponse>> getNotifications() {
+    public ResponseEntity<?> getNotifications() {
         try {
             return ResponseEntity.ok(logService.getNotifications(getUserId()));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(null);
+            return ResponseEntity.status(500).body(Map.of("error", "Internal server error"));
         }
     }
 
     @PostMapping("/notification")
-    public ResponseEntity<Map<String, String>> updateNotifications() {
+    public ResponseEntity<?> updateNotifications() {
         try {
-            String message = logService.updateNotifications(getUserId());
-            return ResponseEntity.ok(Map.of("message", message));
+            return ResponseEntity.ok(Map.of("message", logService.updateNotifications(getUserId())));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(500).body(Map.of("error", "Internal server error"));
         }
     }
 }

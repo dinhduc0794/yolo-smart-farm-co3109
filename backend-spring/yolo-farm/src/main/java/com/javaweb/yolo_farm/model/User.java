@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.Date;
 import java.util.List;
 
-@Document(collection = "user")
+@Document(collection = "users")
 @Getter
 @Setter
 public class User {
@@ -20,7 +20,6 @@ public class User {
     private String resetToken;
     private Date expireToken;
     private String pic = "https://hcmut.edu.vn/img/nhanDienThuongHieu/01_logobachkhoasang.png";
-    private List<String> addCart;
     private String address;
     private String phoneno;
 }

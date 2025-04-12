@@ -27,14 +27,14 @@ public class LogService {
         Date dat = new Date();
         dat.setDate(dat.getDate() - 30);
 
-        List<ActivityLog> logs = activityLogRepository.findAll()
+        List<ActivityLog> logs = activityLogRepository.findByUserID(userId)
                 .stream()
-                .filter(log -> log.getUserID().equals(userId) && log.getDtime().after(dat))
+                .filter(log -> log.getDtime().after(dat))
                 .sorted((l1, l2) -> l2.getDtime().compareTo(l1.getDtime()))
                 .limit(20)
                 .collect(Collectors.toList());
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
         return logs.stream().map(log -> {
             LogResponse response = new LogResponse();
             response.setContent(log.getContent());
@@ -54,7 +54,7 @@ public class LogService {
                 .limit(20)
                 .collect(Collectors.toList());
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
         return notifications.stream().map(noti -> {
             NotificationResponse response = new NotificationResponse();
             response.setTitle(noti.getTitle());

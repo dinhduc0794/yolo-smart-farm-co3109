@@ -1,8 +1,7 @@
 package com.javaweb.yolo_farm.controller;
 
-import com.javaweb.yolo_farm.dto.UpdatePasswordRequest;
-import com.javaweb.yolo_farm.dto.UpdateUserRequest;
-import com.javaweb.yolo_farm.dto.response.UserResponse;
+import com.javaweb.yolo_farm.dto.request.UpdatePasswordRequest;
+import com.javaweb.yolo_farm.dto.request.UpdateUserRequest;
 import com.javaweb.yolo_farm.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -23,28 +22,27 @@ public class UserController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<UserResponse> getUser() {
+    public ResponseEntity<?> getUser() {
         try {
             return ResponseEntity.ok(userService.getUser(getUserId()));
         } catch (Exception e) {
-            return ResponseEntity.status(404).body(null);
+            return ResponseEntity.status(404).body(Map.of("error", "User not found"));
         }
     }
 
     @PostMapping("/")
-    public ResponseEntity<UserResponse> updateUser(@RequestBody UpdateUserRequest request) {
+    public ResponseEntity<?> updateUser(@RequestBody UpdateUserRequest request) {
         try {
             return ResponseEntity.ok(userService.updateUser(getUserId(), request));
         } catch (Exception e) {
-            return ResponseEntity.status(400).body(null);
+            return ResponseEntity.status(400).body(Map.of("error", e.getMessage()));
         }
     }
 
-    @PostMapping("/updatePassword/")
-    public ResponseEntity<Map<String, String>> updatePassword(@RequestBody UpdatePasswordRequest request) {
+    @PostMapping("/updatePassword")
+    public ResponseEntity<?> updatePassword(@RequestBody UpdatePasswordRequest request) {
         try {
-            String message = userService.updatePassword(getUserId(), request);
-            return ResponseEntity.ok(Map.of("message", message));
+            return ResponseEntity.ok(userService.updatePassword(getUserId(), request));
         } catch (Exception e) {
             return ResponseEntity.status(400).body(Map.of("error", e.getMessage()));
         }
