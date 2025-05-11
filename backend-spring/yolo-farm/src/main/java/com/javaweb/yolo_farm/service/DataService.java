@@ -39,24 +39,25 @@ public class DataService {
     private ActivityLogService activityLogService;
 
     private static final Map<String, String> FACTOR_FEED_MAP = Map.of(
-            "Humidity", "humidity-sensor",
-            "Temperature", "temperature-sensor",
-            "Moisture", "soil-moisture-sensor",
-            "Light", "light-sensor"
+            "humidity", "humidity-sensor",
+            "temperature", "temperature-sensor",
+            "moisture", "soil-moisture-sensor",
+            "light", "light-sensor"
+
     );
 
     private static final Map<String, String> FACTOR_DEVICE_MAP = Map.of(
-            "Moisture", "pump",
-            "Temperature", "fan",
-            "Light", "light",
-            "Humidity", "fan" // Thêm ánh xạ cho Humidity
+            "moisture", "pump",
+            "temperature", "fan",
+            "light", "light",
+            "humidity", "fan2" // Thêm ánh xạ cho Humidity
     );
 
     private static final Map<String, String> FACTOR_UNIT_MAP = Map.of(
-            "Humidity", "%",
-            "Temperature", "°C",
-            "Moisture", "%",
-            "Light", "lux"
+            "humidity", "%",
+            "temperature", "°C",
+            "moisture", "%",
+            "light", "lux"
     );
 
     public Map<String, Object> getMode(String userId, String factorName) {
@@ -128,7 +129,7 @@ public class DataService {
     }
 
     public Map<String, Object> getCurrent(String userId, String factorName) {
-        Factor factor = factorRepository.findByUserIDAndName(userId, factorName)
+        Factor factor = factorRepository.findByUserIDAndName(userId, FACTOR_DEVICE_MAP.get(factorName))
                 .orElseGet(() -> createFactor(userId, factorName));
 
         Stat stat = statRepository.findTopByFactorIDOrderByDtimeDesc(factor.getId())
@@ -172,7 +173,7 @@ public class DataService {
     public Map<String, String> toggleMode(String userId, ModeRequest request) {
         String deviceName = request.getReqdevice();
         if (!List.of("fan", "awning", "pump", "light").contains(deviceName)) {
-            return Map.of("error", "Invalid device");
+            throw new RuntimeException("error Invalid device");
         }
         boolean state = request.isState();
         return toggleDevice(userId, deviceName, state ? 1 : 0, "user")
@@ -183,7 +184,7 @@ public class DataService {
     public Map<String, Boolean> getDeviceModes(String userId) {
         List<Device> devices = deviceRepository.findByUserID(userId).stream().toList();
         Map<String, Boolean> response = new HashMap<>();
-        List.of("fan", "pump", "light", "awning").forEach(deviceName ->
+        List.of("fan", "pump", "light", "fan2").forEach(deviceName ->
                 response.put(deviceName, devices.stream()
                         .filter(d -> d.getName().equals(deviceName))
                         .findFirst()
@@ -217,7 +218,14 @@ public class DataService {
         }
         device.setState(newState);
         deviceRepository.save(device);
-        adafruitService.controlDevice(deviceName, newState);
+        String deviceName2;
+        if("light".equals(deviceName)){
+            deviceName2= "button";
+        }
+        else{
+            deviceName2="relay";
+        }
+        adafruitService.controlDevice(deviceName2, newState);
         String content = String.format("%s turned %s the %s", by, newState ? "on" : "off", deviceName);
         activityLogService.createLog(userId, content);
         return true;
@@ -235,7 +243,7 @@ public class DataService {
     }
 
     private double refreshDevice(Factor factor) {
-        String feedName = FACTOR_FEED_MAP.get(factor.getName());
+        String feedName = FACTOR_FEED_MAP.get(factor.getName().toLowerCase());
         if (feedName == null) {
             throw new IllegalArgumentException("Invalid factor: " + factor.getName());
         }

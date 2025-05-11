@@ -21,6 +21,11 @@ public class DataController {
         return SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
     }
 
+    @GetMapping("/hello")
+    public ResponseEntity<?> hello() {
+        return ResponseEntity.ok("Hello World");
+    }
+
     @GetMapping("/{factor}/mode")
     public ResponseEntity<?> getMode(@PathVariable String factor) {
         try {
@@ -31,7 +36,7 @@ public class DataController {
     }
 
     @PutMapping("/{factor}/mode")
-    public ResponseEntity<?> putMode(@PathVariable String factor, @RequestBody Map<String, String> body) {
+    public ResponseEntity<?> putMode(@PathVariable String factor) {
         try {
             return ResponseEntity.ok(dataService.putMode(getUserId(), factor));
         } catch (Exception e) {
@@ -53,7 +58,7 @@ public class DataController {
         try {
             return ResponseEntity.ok(dataService.getCurrent(getUserId(), factor));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(400).body(Map.of("error", e.getMessage()));
         }
     }
 

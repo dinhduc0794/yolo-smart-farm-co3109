@@ -18,7 +18,7 @@ public class UserController {
     private UserService userService;
 
     private String getUserId() {
-        return SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
+        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
     @GetMapping("/")

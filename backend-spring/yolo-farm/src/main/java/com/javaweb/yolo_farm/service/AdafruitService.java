@@ -32,8 +32,7 @@ public class AdafruitService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("X-AIO-Key", AIO_KEY);
-
-        String requestBody = String.format("{\"value\": \"%s\"}", value ? "1" : "0");
+        String requestBody = String.format("{\"value\": \"%s\"}", value ? "ON" : "OFF");
         HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
 
         try {
@@ -47,6 +46,7 @@ public class AdafruitService {
 
     public double fetchData(String feedName) {
         String url = String.format("https://io.adafruit.com/api/v2/%s/feeds/%s/data/last", AIO_USERNAME, feedName);
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("X-AIO-Key", AIO_KEY);
