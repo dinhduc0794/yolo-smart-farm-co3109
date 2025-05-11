@@ -21,11 +21,6 @@ public class DataController {
         return SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
     }
 
-    @GetMapping("/hello")
-    public ResponseEntity<?> hello() {
-        return ResponseEntity.ok("Hello World");
-    }
-
     @GetMapping("/{factor}/mode")
     public ResponseEntity<?> getMode(@PathVariable String factor) {
         try {
