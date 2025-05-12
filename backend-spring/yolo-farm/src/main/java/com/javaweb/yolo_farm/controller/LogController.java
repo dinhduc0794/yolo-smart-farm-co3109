@@ -1,5 +1,7 @@
 package com.javaweb.yolo_farm.controller;
 
+import com.javaweb.yolo_farm.dto.LogResponse;
+import com.javaweb.yolo_farm.dto.NotificationResponse;
 import com.javaweb.yolo_farm.service.LogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface FactorRepository extends MongoRepository<Factor, String> {
     Optional<Factor> findByUserIDAndName(String userID, String name);
     List<Factor> findByUserID(String userID);
+    List<Factor> findAllByUserIDAndName(String userID, String name);
 }

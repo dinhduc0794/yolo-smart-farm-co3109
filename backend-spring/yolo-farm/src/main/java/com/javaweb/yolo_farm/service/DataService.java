@@ -129,10 +129,9 @@ public class DataService {
     }
 
     public Map<String, Object> getCurrent(String userId, String factorName) {
-        Factor factor = factorRepository.findByUserIDAndName(userId, FACTOR_DEVICE_MAP.get(factorName))
-                .orElseGet(() -> createFactor(userId, factorName));
 
-        Stat stat = statRepository.findTopByFactorIDOrderByDtimeDesc(factor.getId())
+        String unit = FACTOR_UNIT_MAP.get(factorName);
+        Stat stat = statRepository.findTopByUnitOrderByDtimeDesc(unit)
                 .orElseThrow(() -> new NoSuchElementException("No stats found for factor: " + factorName));
 
         return Map.of("value", stat.getValue());
@@ -140,18 +139,19 @@ public class DataService {
 
 
     public Map<String, Object> refresh(String userId, String factorName) {
-        Factor factor = factorRepository.findByUserIDAndName(userId, factorName)
-                .orElseGet(() -> createFactor(userId, factorName));
+        List<Factor> list = factorRepository.findAllByUserIDAndName(userId, factorName);
+        Factor factor = list.isEmpty()
+                ? createFactor(userId, factorName)
+                : list.get(0);
         double value = refreshDevice(factor);
         return Map.of("value", value);
     }
 
     public Map<String, Double> getThreshold(String userId, String factorName) {
-        Factor factor = factorRepository.findByUserIDAndName(userId, factorName)
-                .orElseGet(() -> createFactor(userId, factorName));
+        List<Factor> factor = factorRepository.findAllByUserIDAndName(userId,factorName);
         return Map.of(
-                "lowerbound", factor.getLowbound(),
-                "upperbound", factor.getUpbound()
+                "lowerbound", factor.get(0).getLowbound(),
+                "upperbound", factor.get(0).getUpbound()
         );
     }
 

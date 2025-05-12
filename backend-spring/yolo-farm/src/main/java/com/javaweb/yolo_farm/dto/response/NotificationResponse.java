@@ -1,4 +1,4 @@
-package com.javaweb.yolo_farm.dto.response;
+package com.javaweb.yolo_farm.dto;
 
 import lombok.Data;
 import lombok.Getter;

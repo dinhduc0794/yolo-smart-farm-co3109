@@ -1,7 +1,7 @@
 package com.javaweb.yolo_farm.service;
 
-import com.javaweb.yolo_farm.dto.response.LogResponse;
-import com.javaweb.yolo_farm.dto.response.NotificationResponse;
+import com.javaweb.yolo_farm.dto.LogResponse;
+import com.javaweb.yolo_farm.dto.NotificationResponse;
 import com.javaweb.yolo_farm.model.ActivityLog;
 import com.javaweb.yolo_farm.model.Notification;
 import com.javaweb.yolo_farm.repository.ActivityLogRepository;
@@ -23,7 +23,7 @@ public class LogService {
     @Autowired
     private NotificationRepository notificationRepository;
 
-    public List<com.javaweb.yolo_farm.dto.response.LogResponse> getLogs(String userId) {
+    public List<LogResponse> getLogs(String userId) {
         Date dat = new Date();
         dat.setDate(dat.getDate() - 30);
 

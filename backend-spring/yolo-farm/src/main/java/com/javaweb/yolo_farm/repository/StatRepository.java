@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface StatRepository extends MongoRepository<Stat, String> {
     List<Stat> findByFactorID(String factorID);
     Optional<Stat> findTopByFactorIDOrderByDtimeDesc(String factorID);
+    Optional<Stat> findTopByUnitOrderByDtimeDesc(String unit);
 }
