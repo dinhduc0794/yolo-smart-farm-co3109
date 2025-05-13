@@ -1,7 +1,7 @@
 package com.javaweb.yolo_farm.service;
 
-import com.javaweb.yolo_farm.dto.LogResponse;
-import com.javaweb.yolo_farm.dto.NotificationResponse;
+import com.javaweb.yolo_farm.dto.response.LogResponse;
+import com.javaweb.yolo_farm.dto.response.NotificationResponse;
 import com.javaweb.yolo_farm.model.ActivityLog;
 import com.javaweb.yolo_farm.model.Notification;
 import com.javaweb.yolo_farm.repository.ActivityLogRepository;
