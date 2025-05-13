@@ -21,7 +21,7 @@ public class UserController {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
-    @GetMapping("/")
+    @GetMapping
     public ResponseEntity<?> getUser() {
         try {
             return ResponseEntity.ok(userService.getUser(getUserId()));
@@ -30,7 +30,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/")
+    @PostMapping
     public ResponseEntity<?> updateUser(@RequestBody UpdateUserRequest request) {
         try {
             return ResponseEntity.ok(userService.updateUser(getUserId(), request));
