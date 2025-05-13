@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { signIn, clearAuthError } from "../../../store/AuthSlice";
 import InputField from "../fragments/InputField/InputField";
 
 function LoginForm() {
@@ -7,10 +9,21 @@ function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { loading, error } = useSelector((state) => state.auth);
 
-  const handleSubmit = (event) => {
-    event.preventDefault(); // Ngăn chặn reload trang
-    navigate("/account"); // Chuyển hướng đến trang Account
+  // Clear any previous auth errors when component mounts or unmounts
+  useEffect(() => {
+    dispatch(clearAuthError());
+    return () => dispatch(clearAuthError());
+  }, [dispatch]);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const result = await dispatch(signIn({ email, password }));
+    if (!result.error) {
+      navigate("/account");
+    }
   };
 
   return (
@@ -60,11 +73,18 @@ function LoginForm() {
             </a>
           </div>
 
+          {error && (
+            <div className="text-red-500 text-sm mt-2 text-center">
+              {error}
+            </div>
+          )}
+
           <button
             type="submit"
-            className="w-full mt-4 px-4 py-2 text-white bg-[#B08B4F] rounded-md hover:bg-[#976C42] transition duration-300"
+            disabled={loading}
+            className="w-full mt-4 px-4 py-2 text-white bg-[#B08B4F] rounded-md hover:bg-[#976C42] transition duration-300 disabled:opacity-50"
           >
-            Đăng nhập
+            {loading ? "Đang xử lý..." : "Đăng nhập"}
           </button>
 
           <div className="flex justify-center mt-4 text-sm">
