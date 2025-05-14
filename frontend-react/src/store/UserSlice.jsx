@@ -1,29 +1,46 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
-const BASE_URL = import.meta.env.VITE_REACT_APP_BE_API_URL || "http://localhost:8085/api/user";
+const BASE_URL = `${import.meta.env.VITE_REACT_APP_BE_API_URL || "http://localhost:8085"}/api/user`;
 
-// Async thunks for user
-export const fetchUserProfile = createAsyncThunk(
-  "user/fetchProfile",
+// Helper function to get user from localStorage
+export const getUserFromLocalStorage = () => {
+  try {
+    const userString = localStorage.getItem('user');
+    return userString ? JSON.parse(userString) : null;
+  } catch (error) {
+    console.error("Error parsing user from localStorage:", error);
+    return null;
+  }
+};
+
+// Helper function to set user in localStorage
+export const setUserInLocalStorage = (userData) => {
+  try {
+    const existingUser = getUserFromLocalStorage();
+    const updatedUser = existingUser ? { ...existingUser, ...userData } : userData;
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+  } catch (error) {
+    console.error("Error saving user to localStorage:", error);
+  }
+};
+
+// Sync action to load user profile from localStorage
+export const loadUserProfile = createAsyncThunk(
+  "user/loadProfile",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${BASE_URL}`, {
-        method: 'GET',
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch user profile. HTTP status: ${response.status}`);
+      const userData = getUserFromLocalStorage();
+      if (!userData) {
+        throw new Error('No user data found in localStorage');
       }
-
-      const data = await response.json();
-      return data;
+      return userData;
     } catch (error) {
       return rejectWithValue(error.message);
     }
   }
 );
 
+// Update user profile in localStorage and backend
 export const updateUserProfile = createAsyncThunk(
   "user/updateProfile",
   async (userData, { rejectWithValue }) => {
@@ -42,6 +59,8 @@ export const updateUserProfile = createAsyncThunk(
       }
 
       const data = await response.json();
+      // Update user data in localStorage
+      setUserInLocalStorage(data);
       return data;
     } catch (error) {
       return rejectWithValue(error.message);
@@ -75,7 +94,7 @@ export const updateUserPassword = createAsyncThunk(
 );
 
 const initialState = {
-  profile: null,
+  profile: getUserFromLocalStorage(), // Initialize from localStorage
   loading: false,
   error: null,
   passwordUpdateSuccess: false,
@@ -95,19 +114,19 @@ const userSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // Handle fetchUserProfile
+    // Handle loadUserProfile
     builder
-      .addCase(fetchUserProfile.pending, (state) => {
+      .addCase(loadUserProfile.pending, (state) => {
         state.loading = true;
       })
-      .addCase(fetchUserProfile.fulfilled, (state, action) => {
+      .addCase(loadUserProfile.fulfilled, (state, action) => {
         state.loading = false;
         state.profile = action.payload;
         state.error = null;
       })
-      .addCase(fetchUserProfile.rejected, (state, action) => {
+      .addCase(loadUserProfile.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || 'Failed to fetch user profile';
+        state.error = action.payload || 'Failed to load user profile';
       });
 
     // Handle updateUserProfile

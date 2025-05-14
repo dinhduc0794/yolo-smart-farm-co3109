@@ -1,17 +1,71 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Pencil, X } from "lucide-react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useDispatch, useSelector } from "react-redux";
+import { 
+  loadUserProfile, 
+  updateUserProfile, 
+  resetUpdateStatus,
+  getUserFromLocalStorage 
+} from "../../../store/UserSlice";
 
 const PersonalInfoForm = () => {
+  const dispatch = useDispatch();
+  const { profile, loading, error, profileUpdateSuccess } = useSelector((state) => state.user);
   const [isEditing, setIsEditing] = useState(false);
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
-    email: "name.lastname@hcmut.edu.vn",
-    fullName: "Nguyen Van A",
-    phoneNumber: "0123456789",
-    dateOfBirth: "1990-01-01",
+    email: "",
+    fullName: "",
+    phoneNumber: "",
+    address: "",
   });
+
+  // Load user data on component mount
+  useEffect(() => {
+    const userData = getUserFromLocalStorage();
+    if (userData) {
+      setFormData({
+        email: userData.email || "",
+        fullName: userData.name || "",
+        phoneNumber: userData.phoneno || "",
+        address: userData.address || "",
+      });
+    } else {
+      // If no data in localStorage, try to load from Redux
+      dispatch(loadUserProfile());
+    }
+  }, [dispatch]);
+
+  // Update form data when profile is loaded from Redux
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        email: profile.email || "",
+        fullName: profile.name || "",
+        phoneNumber: profile.phoneno || "",
+        address: profile.address || "",
+      });
+    }
+  }, [profile]);
+
+  // Show success toast when profile is updated
+  useEffect(() => {
+    if (profileUpdateSuccess) {
+      toast.success("Thông tin đã được cập nhật thành công!");
+      setIsEditing(false);
+      dispatch(resetUpdateStatus());
+    }
+  }, [profileUpdateSuccess, dispatch]);
+
+  // Show error toast if there's an error
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      dispatch(resetUpdateStatus());
+    }
+  }, [error, dispatch]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -22,14 +76,18 @@ const PersonalInfoForm = () => {
     let newErrors = {};
     if (!formData.fullName.trim()) newErrors.fullName = "Họ và tên không được để trống";
     if (!formData.phoneNumber.match(/^\d{10}$/)) newErrors.phoneNumber = "Số điện thoại không hợp lệ";
+    if (!formData.address.trim()) newErrors.address = "Địa chỉ không được để trống";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = () => {
     if (!validateForm()) return;
-    toast.success("Thông tin đã được cập nhật thành công!");
-    setIsEditing(false);
+    dispatch(updateUserProfile({
+      name: formData.fullName,
+      phoneno: formData.phoneNumber,
+      address: formData.address,
+    }));
   };
 
   const renderField = (label, name, value, type = "text") => {
@@ -44,6 +102,7 @@ const PersonalInfoForm = () => {
               value={value}
               onChange={handleInputChange}
               className={`w-full p-2 border ${errors[name] ? "border-red-500" : "border-gray-300"} rounded focus:outline-none focus:ring-2 ${errors[name] ? "focus:ring-red-500" : "focus:ring-blue-500"}`}
+              disabled={name === "email" || loading}
             />
             {errors[name] && <p className="text-red-500 text-sm mt-1">{errors[name]}</p>}
           </>
@@ -61,9 +120,21 @@ const PersonalInfoForm = () => {
         <button
           onClick={() => {
             setIsEditing(!isEditing);
-            if (!isEditing) setErrors({});
+            if (!isEditing) {
+              setErrors({});
+              // Reset form data to current profile data if canceling edit
+              if (profile) {
+                setFormData({
+                  email: profile.email || "",
+                  fullName: profile.name || "",
+                  phoneNumber: profile.phoneno || "",
+                  address: profile.address || "",
+                });
+              }
+            }
           }}
           className="p-2 hover:bg-gray-200 bg-gray-100 rounded-md transition-colors"
+          disabled={loading}
         >
           <div className="flex gap-3">
             {isEditing ? (
@@ -81,22 +152,29 @@ const PersonalInfoForm = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-        {renderField("EMAIL", "email", formData.email)}
-        {renderField("HỌ VÀ TÊN", "fullName", formData.fullName)}
-        {renderField("SỐ ĐIỆN THOẠI", "phoneNumber", formData.phoneNumber)}
-        {renderField("NGÀY SINH", "dateOfBirth", formData.dateOfBirth, "date")}
-      </div>
+      {loading && !formData.email ? (
+        <div className="text-center py-4">Đang tải dữ liệu...</div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+            {renderField("EMAIL", "email", formData.email)}
+            {renderField("HỌ VÀ TÊN", "fullName", formData.fullName)}
+            {renderField("SỐ ĐIỆN THOẠI", "phoneNumber", formData.phoneNumber)}
+            {renderField("ĐỊA CHỈ", "address", formData.address)}
+          </div>
 
-      {isEditing && (
-        <div className="flex justify-center mt-6">
-          <button
-            onClick={handleSubmit}
-            className="px-12 py-3 md:py-4 text-base font-semibold text-white uppercase bg-[#B08B4F] hover:bg-[#976C42] rounded-xl shadow-lg transition-colors"
-          >
-            XÁC NHẬN
-          </button>
-        </div>
+          {isEditing && (
+            <div className="flex justify-center mt-6">
+              <button
+                onClick={handleSubmit}
+                className={`px-12 py-3 md:py-4 text-base font-semibold text-white uppercase bg-[#B08B4F] hover:bg-[#976C42] rounded-xl shadow-lg transition-colors ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={loading}
+              >
+                {loading ? "ĐANG CẬP NHẬT..." : "XÁC NHẬN"}
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

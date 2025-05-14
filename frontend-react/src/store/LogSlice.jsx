@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
-const BASE_URL = import.meta.env.VITE_REACT_APP_BE_API_URL || "http://localhost:8085/api/log";
+const BASE_URL = `${import.meta.env.VITE_REACT_APP_BE_API_URL || "http://localhost:8085"}/api/log`;
 
 // Async thunks for logs
 export const fetchLogs = createAsyncThunk(
