@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from 'axios';
 
 const BASE_URL = `${import.meta.env.VITE_REACT_APP_BE_API_URL || "http://localhost:8085"}/api`;
 
@@ -13,14 +14,23 @@ export const fetchSystemStats = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const token = getAuthToken();
-      const response = await axios.get(`${BASE_URL}/system/stat`, {
+      const response = await fetch(`${BASE_URL}/system/stat`, {
+        method: 'GET',
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
-        }
+        },
+        credentials: 'include'
       });
-      return response.data;
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch system stats. HTTP status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.message || 'Failed to fetch system stats');
     }
   }
 );

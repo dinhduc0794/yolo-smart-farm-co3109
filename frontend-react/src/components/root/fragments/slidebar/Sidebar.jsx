@@ -49,16 +49,6 @@ const Sidebar = () => {
       link: "/setting",
     },
     {
-      icon: "src/images/lightbulb.png",
-      text: "Hệ thống đèn",
-      link: "/lighting",
-    },
-    {
-      icon: "src/images/droplet.png",
-      text: "Hệ thống tưới nước",
-      link: "/watering",
-    },
-    {
       icon: "src/images/chart-column.png",
       text: "Thống kê",
       link: "/summary",

@@ -20,15 +20,34 @@ export const signUp = createAsyncThunk(
         body: JSON.stringify(userData)
       });
 
+      
+      const responseText = await response.text();
+      
       if (!response.ok) {
-        throw new Error(`Registration failed. HTTP status: ${response.status}`);
+        let errorMessage = "Registration failed.";
+        try {
+          const errorData = JSON.parse(responseText);
+          errorMessage = errorData.message || `Registration failed. HTTP status: ${response.status}`;
+        } catch (e) {
+          errorMessage = `Registration failed. HTTP status: ${response.status}. Response: ${responseText}`;
+        }
+        
+        throw new Error(errorMessage);
       }
 
-      const data = await response.json();
-      toast.success("Đăng ký tài khoản thành công");
-      return data;
+      // Parse the response if it's valid JSON
+      let data;
+      try {
+        data = JSON.parse(responseText);
+        console.log("Parsed response data:", data);
+      } catch (e) {
+        console.log("Failed to parse JSON response", e);
+        data = { message: "Registration successful but no data returned" };
+      }
+            return data;
     } catch (error) {
-      toast.error("Đăng ký tài khoản không thành công");
+      console.error("SignUp thunk error:", error);
+      toast.error(`Đăng ký không thành công: ${error.message}`);
       return rejectWithValue(error.message);
     }
   }

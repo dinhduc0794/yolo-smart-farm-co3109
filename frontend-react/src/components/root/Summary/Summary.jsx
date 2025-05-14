@@ -1,15 +1,13 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchSystemStats } from '../../../store/SystemSlice';
+import { format, subDays } from 'date-fns';
+import { vi } from 'date-fns/locale';
 
 const PlantMonitoringDashboard = () => {
-  // Sample data with expanded information
-  const initialData = [
-    { date: '2023-12-09', temperature: 30, airHumidity: 25, soilMoisture: 30, light: 120 },
-    { date: '2023-12-10', temperature: 32, airHumidity: 40, soilMoisture: 60, light: 140 },
-    { date: '2023-12-11', temperature: 38, airHumidity: 80, soilMoisture: 85, light: 90 },
-    { date: '2023-12-12', temperature: 30, airHumidity: 42, soilMoisture: 55, light: 100 },
-    { date: '2023-12-13', temperature: 32, airHumidity: 50, soilMoisture: 70, light: 120 }
-  ];
-
+  const dispatch = useDispatch();
+  const { stats, loading, error } = useSelector(state => state.system);
+  
   // State management
   const [chartType, setChartType] = useState('line');
   const [selectedMetrics, setSelectedMetrics] = useState({
@@ -19,6 +17,11 @@ const PlantMonitoringDashboard = () => {
     light: true
   });
   const [dateRange, setDateRange] = useState('all');
+  
+  // Fetch data when component mounts
+  useEffect(() => {
+    dispatch(fetchSystemStats());
+  }, [dispatch]);
 
   // Enhanced colors with better contrast
   const colors = {
@@ -30,40 +33,77 @@ const PlantMonitoringDashboard = () => {
 
   // Labels and units for metrics
   const metricInfo = {
-    temperature: { label: 'Nhiệt độ', unit: '°C', idealRange: [22, 30] },
-    airHumidity: { label: 'Độ ẩm không khí', unit: '%', idealRange: [40, 60] },
-    soilMoisture: { label: 'Độ ẩm đất', unit: '%', idealRange: [60, 80] },
-    light: { label: 'Ánh sáng', unit: 'lux', idealRange: [80, 120] }
+    temperature: { label: 'Nhiệt độ', unit: '°C', idealRange: [22, 30], key: 'temperature' },
+    airHumidity: { label: 'Độ ẩm không khí', unit: '%', idealRange: [40, 60], key: 'humidity' },
+    soilMoisture: { label: 'Độ ẩm đất', unit: '%', idealRange: [60, 80], key: 'moisture' },
+    light: { label: 'Ánh sáng', unit: 'lux', idealRange: [80, 120], key: 'light' }
   };
 
-  // Format date in Vietnamese
-  const formatDate = useCallback((dateStr) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('vi-VN', { month: 'short', day: 'numeric' });
+  // Format date 
+  const formatDate = useCallback((daysAgo) => {
+    const date = subDays(new Date(), daysAgo);
+    return format(date, 'dd/MM', { locale: vi });
   }, []);
 
+  // Prepare data for charts from API response
+  const processedData = useMemo(() => {
+    if (!stats) return [];
+    
+    // Determine the total number of days based on data length
+    const totalDays = 5; // Assuming we want to show 5 days worth of data
+    const dataPointsPerDay = Math.floor(stats.temperature?.length / totalDays) || 1;
+    
+    // Create data points for visualization
+    const dataPoints = [];
+    for (let i = totalDays-1; i >= 0; i--) {
+      const index = i * dataPointsPerDay;
+      if (index < 0 || index >= stats.temperature?.length) continue;
+      
+      dataPoints.push({
+        date: formatDate(i),
+        temperature: stats.temperature?.[index] || 0,
+        airHumidity: stats.humidity?.[index] || 0,
+        soilMoisture: stats.moisture?.[index] || 0,
+        light: stats.light?.[index] || 0
+      });
+    }
+    
+    return dataPoints;
+  }, [stats, formatDate]);
+  
   // Filtered data based on selected date range
   const filteredData = useMemo(() => {
-    if (dateRange === 'all') return initialData;
+    if (dateRange === 'all' || processedData.length === 0) return processedData;
     const days = parseInt(dateRange);
-    return initialData.slice(-days);
-  }, [dateRange, initialData]);
+    return processedData.slice(-days);
+  }, [dateRange, processedData]);
 
   // Calculate statistics for each metric
   const statistics = useMemo(() => {
-    const stats = {};
-    Object.keys(metricInfo).forEach(metric => {
-      const values = filteredData.map(d => d[metric]);
-      stats[metric] = {
-        current: filteredData[filteredData.length - 1][metric],
-        avg: Math.round(values.reduce((sum, val) => sum + val, 0) / values.length),
+    if (!stats) return {};
+    
+    const calculateStats = (data) => {
+      const values = data.filter(v => typeof v === 'number' && !isNaN(v));
+      if (values.length === 0) return { current: 0, avg: 0, min: 0, max: 0, trend: 'stable' };
+      
+      const current = values[values.length - 1];
+      const prev = values[values.length - 2] || current;
+      return {
+        current,
+        avg: Math.round(values.reduce((sum, val) => sum + val, 0) / values.length * 10) / 10,
         min: Math.min(...values),
         max: Math.max(...values),
-        trend: values[values.length - 1] > values[values.length - 2] ? 'up' : 'down'
+        trend: current > prev ? 'up' : current < prev ? 'down' : 'stable'
       };
-    });
-    return stats;
-  }, [filteredData, metricInfo]);
+    };
+
+    return {
+      temperature: calculateStats(stats.temperature || []),
+      airHumidity: calculateStats(stats.humidity || []),
+      soilMoisture: calculateStats(stats.moisture || []),
+      light: calculateStats(stats.light || [])
+    };
+  }, [stats]);
 
   // Check if current value is within ideal range
   const getStatusIndicator = useCallback((metric, value) => {
@@ -91,6 +131,22 @@ const PlantMonitoringDashboard = () => {
     setDateRange(range);
   }, []);
 
+  if (loading) {
+    return (
+      <div className="p-6 bg-gray-50 min-h-screen flex justify-center items-center">
+        <div className="text-xl font-semibold">Đang tải dữ liệu...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 bg-gray-50 min-h-screen flex justify-center items-center">
+        <div className="text-xl font-semibold text-red-500">Lỗi: {error}</div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-6xl mx-auto">
@@ -98,7 +154,7 @@ const PlantMonitoringDashboard = () => {
           <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-800 mb-2">Giám sát Môi trường Cây trồng</h1>
-              <p className="text-gray-600">Dữ liệu từ ngày 9-13 tháng 12 năm 2023</p>
+              <p className="text-gray-600">Dữ liệu từ hệ thống Smart Farm</p>
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 mt-4 md:mt-0">
@@ -210,10 +266,12 @@ const PlantMonitoringDashboard = () => {
                     {/* Chart lines */}
                     {Object.keys(metricInfo).map(metric => {
                       if (!selectedMetrics[metric]) return null;
+                      const dataKey = metricInfo[metric].key === 'airHumidity' ? 'airHumidity' : metricInfo[metric].key;
+                      
                       return (
                         <g key={`line-${metric}`}>
                           <polyline
-                            points={filteredData.map((d, i) => `${i * (400 / (filteredData.length - 1))},${200 - (d[metric] / 140) * 200}`).join(' ')}
+                            points={filteredData.map((d, i) => `${i * (400 / (filteredData.length - 1 || 1))},${200 - (d[dataKey] / 140) * 200}`).join(' ')}
                             fill="none"
                             stroke={colors[metric]}
                             strokeWidth="2"
@@ -224,8 +282,8 @@ const PlantMonitoringDashboard = () => {
                           {filteredData.map((d, i) => (
                             <circle
                               key={i}
-                              cx={i * (400 / (filteredData.length - 1))}
-                              cy={200 - (d[metric] / 140) * 200}
+                              cx={i * (400 / (filteredData.length - 1 || 1))}
+                              cy={200 - (d[dataKey] / 140) * 200}
                               r="4"
                               fill={colors[metric]}
                             />
@@ -238,7 +296,7 @@ const PlantMonitoringDashboard = () => {
                   {/* X-axis labels */}
                   <div className="absolute left-10 right-0 bottom-0 flex justify-between text-xs text-gray-500 translate-y-6">
                     {filteredData.map((d, i) => (
-                      <span key={i}>{formatDate(d.date)}</span>
+                      <span key={i}>{d.date}</span>
                     ))}
                   </div>
                 </div>
@@ -280,16 +338,18 @@ const PlantMonitoringDashboard = () => {
                         <div className="flex justify-around items-end h-full w-full">
                           {Object.keys(metricInfo).map(metric => {
                             if (!selectedMetrics[metric]) return null;
+                            const dataKey = metricInfo[metric].key === 'airHumidity' ? 'airHumidity' : metricInfo[metric].key;
+                            
                             return (
                               <div 
                                 key={`bar-${metric}`}
                                 className={`mx-px rounded-t-sm transition-all duration-300`}
                                 style={{ 
                                   backgroundColor: colors[metric], 
-                                  height: `${(d[metric] / 140) * 100}%`,
+                                  height: `${(d[dataKey] / 140) * 100}%`,
                                   width: `${80 / Object.keys(selectedMetrics).filter(k => selectedMetrics[k]).length}%`
                                 }} 
-                                title={`${metricInfo[metric].label}: ${d[metric]} ${metricInfo[metric].unit}`}
+                                title={`${metricInfo[metric].label}: ${d[dataKey]} ${metricInfo[metric].unit}`}
                               />
                             );
                           })}
@@ -301,7 +361,7 @@ const PlantMonitoringDashboard = () => {
                   {/* X-axis labels */}
                   <div className="absolute left-10 right-0 bottom-0 flex justify-around text-xs text-gray-500 translate-y-6">
                     {filteredData.map((d, i) => (
-                      <span key={i}>{formatDate(d.date)}</span>
+                      <span key={i}>{d.date}</span>
                     ))}
                   </div>
                 </div>
@@ -314,6 +374,8 @@ const PlantMonitoringDashboard = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {Object.keys(metricInfo).map(metric => {
                   const stats = statistics[metric];
+                  if (!stats) return null;
+                  
                   const status = getStatusIndicator(metric, stats.current);
                   return (
                     <div key={metric} className="bg-gray-50 rounded-lg p-4 border-l-4" style={{ borderLeftColor: colors[metric] }}>
@@ -334,10 +396,10 @@ const PlantMonitoringDashboard = () => {
                         <span className="text-3xl font-bold">{stats.current}</span>
                         <span className="ml-1 text-gray-500 text-lg">{metricInfo[metric].unit}</span>
                         <span className="ml-2 text-xs px-1 rounded" style={{ 
-                          color: stats.trend === 'up' ? '#E53935' : '#2E7D32',
-                          backgroundColor: stats.trend === 'up' ? '#FFEBEE' : '#E8F5E9'
+                          color: stats.trend === 'up' ? '#E53935' : stats.trend === 'down' ? '#2E7D32' : '#757575',
+                          backgroundColor: stats.trend === 'up' ? '#FFEBEE' : stats.trend === 'down' ? '#E8F5E9' : '#F5F5F5'
                         }}>
-                          {stats.trend === 'up' ? '▲' : '▼'}
+                          {stats.trend === 'up' ? '▲' : stats.trend === 'down' ? '▼' : '•'}
                         </span>
                       </div>
                       
@@ -386,7 +448,7 @@ const PlantMonitoringDashboard = () => {
             {/* Check if all values are within ideal range */}
             {Object.keys(metricInfo).every(metric => {
               const [min, max] = metricInfo[metric].idealRange;
-              const current = statistics[metric].current;
+              const current = statistics[metric]?.current || 0;
               return current >= min && current <= max;
             }) ? (
               <div className="p-4 bg-green-50 border border-green-200 rounded-lg flex items-center">
@@ -418,7 +480,7 @@ const PlantMonitoringDashboard = () => {
                   <ul className="text-sm space-y-1">
                     {Object.keys(metricInfo).map(metric => {
                       const [min, max] = metricInfo[metric].idealRange;
-                      const current = statistics[metric].current;
+                      const current = statistics[metric]?.current || 0;
                       if (current < min || current > max) {
                         return (
                           <li key={`warning-${metric}`} className="text-gray-700">
@@ -446,7 +508,7 @@ const PlantMonitoringDashboard = () => {
           <div className="space-y-4">
             {Object.keys(metricInfo).map(metric => {
               const [min, max] = metricInfo[metric].idealRange;
-              const current = statistics[metric].current;
+              const current = statistics[metric]?.current || 0;
               
               if (current < min) {
                 return (
@@ -493,7 +555,7 @@ const PlantMonitoringDashboard = () => {
             
             {Object.keys(metricInfo).every(metric => {
               const [min, max] = metricInfo[metric].idealRange;
-              const current = statistics[metric].current;
+              const current = statistics[metric]?.current || 0;
               return current >= min && current <= max;
             }) && (
               <div className="p-4 bg-green-50 border-l-4 border-green-500 rounded-r-lg">

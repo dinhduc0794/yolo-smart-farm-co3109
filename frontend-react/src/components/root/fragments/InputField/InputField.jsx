@@ -1,77 +1,54 @@
 import React from 'react';
-import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
-import PropTypes from 'prop-types';
+import { Eye, EyeOff } from 'lucide-react';
 
-function InputField({ 
-  id, 
-  name, 
-  type = "text", 
-  placeholder, 
-  required = false, 
-  icon, 
-  showPasswordToggle = false, 
-  showPassword = false, 
-  onTogglePassword = () => {}, 
+const InputField = ({
+  id,
+  name,
+  type,
+  placeholder,
+  required,
   value,
-  defaultValue,        
   onChange,
-  min      
-}) {
+  showPasswordToggle,
+  showPassword,
+  onTogglePassword,
+  error
+}) => {
   return (
-    <div className="flex items-center px-4 py-2 mt-4 w-full text-base font-medium bg-white rounded-xl border border-gray-300 relative">
-      {icon && (
-        typeof icon === 'string' ? (
-          <img
-            loading="lazy"
-            src={icon}
-            alt="icon"
-            className="object-contain shrink-0 w-6 h-6 mr-6"
-          />
-        ) : (
-          <div className="mr-6 w-6 h-6">
-            {icon}
-          </div>
-        )
-      )}
-      <input
-        id={id}
-        name={name}
-        type={showPassword ? "text" : type}
-        placeholder={placeholder}
-        required={required}
-        value={value}
-        defaultValue={defaultValue}
-        onChange={onChange}
-        className="flex-auto rounded-md pl-3 py-1 outline-none"
-        aria-label={placeholder || name}
-        min={min}
-      />
-      {showPasswordToggle && (
-        <button 
-          type="button" 
-          className="absolute right-5 top-[30%] cursor-pointer"
-          onClick={onTogglePassword} 
-          aria-label="Toggle password visibility"
-        >
-          {showPassword ? <AiOutlineEye size={20} /> : <AiOutlineEyeInvisible size={20} />}
-        </button>
+    <div className="mb-4 relative">
+      <div className="relative">
+        <input
+          id={id}
+          name={name}
+          type={type}
+          placeholder={placeholder}
+          required={required}
+          value={value}
+          onChange={onChange}
+          className={`w-full p-3 pl-3 rounded-md border transition
+            ${error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-[#B08B4F]'} 
+            focus:outline-none focus:ring-1 text-[#5A4637]`}
+        />
+        {showPasswordToggle && (
+          <button
+            type="button"
+            onClick={onTogglePassword}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 focus:outline-none"
+            aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+          >
+            {showPassword ? (
+              <EyeOff className="h-5 w-5 text-[#8B7355]" />
+            ) : (
+              <Eye className="h-5 w-5 text-[#8B7355]" />
+            )}
+          </button>
+        )}
+      </div>
+      {error && (
+        <p className="mt-1 text-red-500 text-sm">{error}</p>
       )}
     </div>
   );
-}
-
-InputField.propTypes = {
-  id: PropTypes.string,
-  name: PropTypes.string,
-  type: PropTypes.string,
-  placeholder: PropTypes.string,
-  required: PropTypes.bool,
-  icon: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
-  showPasswordToggle: PropTypes.bool,
-  showPassword: PropTypes.bool,
-  onTogglePassword: PropTypes.func,
-  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  onChange: PropTypes.func,
 };
 
 export default InputField;

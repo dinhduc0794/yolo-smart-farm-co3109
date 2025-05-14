@@ -67,12 +67,6 @@ function LoginForm() {
             onTogglePassword={() => setShowPassword(!showPassword)}
           />
 
-          <div className="flex justify-end text-sm mt-2">
-            <a href="/verifymail" className="text-[#B08B4F] font-bold">
-              Quên mật khẩu?
-            </a>
-          </div>
-
           {error && (
             <div className="text-red-500 text-sm mt-2 text-center">
               {error}

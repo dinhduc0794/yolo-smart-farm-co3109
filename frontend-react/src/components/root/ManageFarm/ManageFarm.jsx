@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { AlertCircle, Thermometer, Droplets, Gauge, Sun, Settings, Bell, ChevronDown, BellOff } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { AlertCircle, Thermometer, Droplets, Gauge, Sun, Settings, ChevronDown, X } from 'lucide-react';
 import { toast } from "react-toastify";
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchNotifications, markAllNotificationsAsRead } from '../../../store/LogSlice';
 
 const EnvironmentalDashboard = () => {
-  // Sample data for zones with historical data
   const [zones, setZones] = useState([
     {
       id: 1,
@@ -38,101 +39,43 @@ const EnvironmentalDashboard = () => {
           history: [51, 52, 53, 54, 55]
         }
       }
-    },
-    {
-      id: 2,
-      name: "Khu vực 2",
-      metrics: {
-        light: { 
-          value: 25.7, 
-          unit: "%", 
-          status: "normal", 
-          thresholds: { low: 10, normal: 20, high: 50 },
-          history: [23.1, 23.8, 24.5, 25.1, 25.7]
-        },
-        temperature: { 
-          value: 28, 
-          unit: "°C", 
-          status: "normal", 
-          thresholds: { low: 20, normal: 30, high: 35 },
-          history: [27, 27.2, 27.5, 27.8, 28]
-        },
-        humidity: { 
-          value: 72.5, 
-          unit: "%", 
-          status: "normal", 
-          thresholds: { low: 40, normal: 60, high: 80 },
-          history: [70.3, 70.8, 71.5, 72.0, 72.5]
-        },
-        soil: { 
-          value: 40, 
-          unit: "%", 
-          status: "normal", 
-          thresholds: { low: 30, normal: 45, high: 55 },
-          history: [39, 39.3, 39.5, 39.8, 40]
-        }
-      }
     }
   ]);
 
-  // Thresholds setup modal state
+  const dispatch = useDispatch();
+  const { notifications, notificationLoading, error } = useSelector(state => state.log);
+
   const [showSetupModal, setShowSetupModal] = useState(false);
   const [currentSetup, setCurrentSetup] = useState(null);
   const [currentZone, setCurrentZone] = useState(null);
-  
-  // View mode (compact or detailed)
   const [viewMode, setViewMode] = useState("compact");
-  
-  // Zone collapse state
   const [collapsedZones, setCollapsedZones] = useState({});
-  
-  // Notification settings
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
-  // Alert banner state
-  const [alerts, setAlerts] = useState([
-    { id: 1, message: "Nguy hiểm: Độ ẩm đất đang ở mức cao", zoneId: 1, metricType: "soil", timestamp: new Date() }
-  ]);
+  useEffect(() => {
+    dispatch(fetchNotifications());
+    const interval = setInterval(() => {
+      dispatch(fetchNotifications());
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [dispatch]);
 
-  // Simulated data updating
+  const unreadNotifications = useMemo(() => {
+    return notifications.filter(notif => notif.newFlag === true);
+  }, [notifications]);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setZones(prevZones => {
         return prevZones.map(zone => {
           const updatedMetrics = { ...zone.metrics };
-          
-          // Update each metric with small random change
           Object.keys(updatedMetrics).forEach(metricKey => {
             const metric = updatedMetrics[metricKey];
-            const randomChange = (Math.random() * 2 - 1) * 0.5; // Random value between -0.5 and 0.5
+            const randomChange = (Math.random() * 2 - 1) * 0.5;
             const newValue = Math.max(0, parseFloat((metric.value + randomChange).toFixed(1)));
-            
-            // Add to history
             const newHistory = [...metric.history.slice(1), newValue];
-            
-            // Determine status
             let newStatus = "normal";
             if (newValue <= metric.thresholds.low) newStatus = "low";
             else if (newValue >= metric.thresholds.high) newStatus = "high";
-            
-            // Check for new alert
-            if (newStatus === "high" && metric.status !== "high" && notificationsEnabled) {
-              const metricLabel = getMetricLabel(metricKey);
-              setAlerts(prevAlerts => [
-                ...prevAlerts,
-                {
-                  id: Date.now(),
-                  message: `Cảnh báo: ${metricLabel} tại ${zone.name} đã tăng lên mức cao (${newValue}${metric.unit})`,
-                  zoneId: zone.id,
-                  metricType: metricKey,
-                  timestamp: new Date()
-                }
-              ]);
-              
-              // Show toast notification
-              toast.warning(`${metricLabel} tại ${zone.name} đã tăng lên mức cao`);
-            }
-            
             updatedMetrics[metricKey] = {
               ...metric,
               value: newValue,
@@ -140,21 +83,30 @@ const EnvironmentalDashboard = () => {
               history: newHistory
             };
           });
-          
           return { ...zone, metrics: updatedMetrics };
         });
       });
-    }, 5000); // Update every 5 seconds
-    
+    }, 5000);
     return () => clearInterval(interval);
-  }, [notificationsEnabled]);
+  }, []);
 
-  // Toggle zone collapse
   const toggleZoneCollapse = (zoneId) => {
     setCollapsedZones(prev => ({
       ...prev,
       [zoneId]: !prev[zoneId]
     }));
+  };
+
+  const handleMarkAllAsRead = () => {
+    if (unreadNotifications.length > 0) {
+      dispatch(markAllNotificationsAsRead())
+        .then(() => {
+          toast.success("Đã đánh dấu tất cả thông báo là đã đọc");
+        })
+        .catch((error) => {
+          toast.error("Không thể đánh dấu thông báo: " + error);
+        });
+    }
   };
 
   const getStatusColor = (status) => {
@@ -195,6 +147,19 @@ const EnvironmentalDashboard = () => {
         return <Gauge className="w-5 h-5 text-brown-500" />;
       default:
         return null;
+    }
+  };
+
+  const getDeviceIcon = (device) => {
+    switch (device?.toLowerCase()) {
+      case 'pump':
+        return <Droplets className="h-5 w-5 text-blue-500" />;
+      case 'light':
+        return <Sun className="h-5 w-5 text-yellow-500" />;
+      case 'fan':
+        return <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-gray-500"><path d="M12 11C9.5 11 7.5 9 7.5 6.5S9.5 2 12 2s4.5 2 4.5 4.5-2 4.5-4.5 4.5z"></path><path d="M12 22c-2.5 0-4.5-2-4.5-4.5S9.5 13 12 13s4.5 2 4.5 4.5-2 4.5-4.5 4.5z"></path><path d="M19.6 6.5c1.2 2.1.1 4.8-2 6s-4.8.1-6-2-.1-4.8 2-6 4.8-.1 6 2z"></path><path d="M4.4 17.5c-1.2-2.1-.1-4.8 2-6s4.8-.1 6 2 .1 4.8-2 6-4.8.1-6-2z"></path></svg>;
+      default:
+        return <Settings className="h-5 w-5 text-gray-600" />;
     }
   };
 
@@ -240,50 +205,34 @@ const EnvironmentalDashboard = () => {
 
   const updateThresholds = () => {
     if (!currentZone || !currentSetup) return;
-    
-    // Validate that values are in ascending order
     const { low, normal, high } = currentSetup.thresholds;
     if (low >= normal || normal >= high) {
       toast.error("Các ngưỡng phải được đặt theo thứ tự tăng dần (Thấp < Bình thường < Cao)");
       return;
     }
-    
     const updatedZones = zones.map(zone => {
       if (zone.id === currentZone.id) {
         const updatedMetrics = { ...zone.metrics };
         updatedMetrics[currentSetup.metricType].thresholds = currentSetup.thresholds;
-        
-        // Recalculate status based on new thresholds
         const value = updatedMetrics[currentSetup.metricType].value;
         const thresholds = currentSetup.thresholds;
-        
         let newStatus = "normal";
         if (value <= thresholds.low) newStatus = "low";
         else if (value >= thresholds.high) newStatus = "high";
-        
         updatedMetrics[currentSetup.metricType].status = newStatus;
-        
         return { ...zone, metrics: updatedMetrics };
       }
       return zone;
     });
-    
     setZones(updatedZones);
     toast.success("Đã cập nhật ngưỡng thành công");
     setShowSetupModal(false);
   };
 
-  // Format timestamp
-  const formatTime = (date) => {
-    return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-  };
-
-  // Render mini chart for trend
   const renderMiniTrend = (history, status) => {
     const max = Math.max(...history);
     const min = Math.min(...history);
-    const range = max - min || 1; // Avoid division by zero
-    
+    const range = max - min || 1;
     return (
       <div className="flex items-end h-8 space-x-1 mt-1">
         {history.map((value, index) => {
@@ -300,7 +249,6 @@ const EnvironmentalDashboard = () => {
     );
   };
 
-  // Render detailed metric view
   const renderDetailedView = (zone) => {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4">
@@ -357,7 +305,6 @@ const EnvironmentalDashboard = () => {
     );
   };
 
-  // Render compact metric view
   const renderCompactView = (zone) => {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
@@ -392,7 +339,6 @@ const EnvironmentalDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Top Navigation */}
       <div className="bg-white border-b sticky top-0 z-10 shadow-sm">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <h1 className="text-xl font-semibold text-blue-800">Bảng điều khiển môi trường</h1>
@@ -412,49 +358,37 @@ const EnvironmentalDashboard = () => {
                 Chi tiết
               </button>
             </div>
-            
-            <button 
-              className="p-2 rounded-full bg-gray-100 hover:bg-gray-200"
-              onClick={() => setNotificationsEnabled(!notificationsEnabled)}
-              title={notificationsEnabled ? "Tắt thông báo" : "Bật thông báo"}
-            >
-              {notificationsEnabled ? 
-                <Bell className="w-5 h-5 text-blue-600" /> : 
-                <BellOff className="w-5 h-5 text-gray-500" />
-              }
-            </button>
           </div>
         </div>
       </div>
 
-      {/* Alert Banner */}
-      {alerts.length > 0 && (
+      {unreadNotifications.length > 0 && (
         <div className="bg-red-50 border-l-4 border-red-500 p-0 mb-4 max-h-40 overflow-y-auto">
           <div className="px-4 py-3 flex justify-between items-center border-b border-red-100">
             <div className="flex items-center">
               <AlertCircle className="h-5 w-5 text-red-500" />
-              <h3 className="ml-2 text-sm font-medium text-red-800">Cảnh báo ({alerts.length})</h3>
+              <h3 className="ml-2 text-sm font-medium text-red-800">Cảnh báo ({unreadNotifications.length})</h3>
             </div>
             <button 
-              className="text-red-500 font-medium hover:bg-red-100 p-1 rounded"
-              onClick={() => setAlerts([])}
+              className="text-blue-600 font-medium hover:bg-blue-100 p-1 rounded text-xs"
+              onClick={handleMarkAllAsRead}
             >
-              Xóa tất cả
+              Đánh dấu đã đọc
             </button>
           </div>
           <div className="divide-y divide-red-100">
-            {alerts.map(alert => (
-              <div key={alert.id} className="px-4 py-2 flex items-center justify-between">
-                <div className="flex-1">
-                  <p className="text-sm text-red-700">{alert.message}</p>
-                  <p className="text-xs text-red-500">{formatTime(alert.timestamp)}</p>
+            {unreadNotifications.map((notification, index) => (
+              <div 
+                key={index} 
+                className="px-4 py-2 flex items-center justify-between cursor-pointer hover:bg-red-100"
+              >
+                <div className="flex items-center">
+                  {getDeviceIcon(notification.device)}
+                  <div className="ml-3">
+                    <p className="text-sm text-red-700">{notification.title}</p>
+                    <p className="text-xs text-red-500">{notification.dtime}</p>
+                  </div>
                 </div>
-                <button 
-                  className="ml-2 text-red-400 hover:text-red-600"
-                  onClick={() => setAlerts(alerts.filter(a => a.id !== alert.id))}
-                >
-                  <span>×</span>
-                </button>
               </div>
             ))}
           </div>
@@ -481,7 +415,6 @@ const EnvironmentalDashboard = () => {
         ))}
       </div>
 
-      {/* Setup Modal */}
       {showSetupModal && currentSetup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
