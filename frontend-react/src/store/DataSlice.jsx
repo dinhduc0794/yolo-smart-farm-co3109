@@ -12,6 +12,11 @@ export const fetchCurrentData = createAsyncThunk(
   "data/fetchCurrent",
   async (factor, { rejectWithValue }) => {
     try {
+      // Validate factor to ensure it's one of the allowed values
+      if (!["humidity", "temperature", "moisture", "light"].includes(factor)) {
+        throw new Error(`Invalid factor: ${factor}`);
+      }
+      
       const token = getAuthToken();
       const response = await fetch(`${BASE_URL}/${factor}/current`, {
         method: 'GET',
@@ -23,13 +28,45 @@ export const fetchCurrentData = createAsyncThunk(
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch current data. HTTP status: ${response.status}`);
+        throw new Error(`Failed to fetch current ${factor} data. HTTP status: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log(`Fetched ${factor} data:`, data);
       return { factor, data };
     } catch (error) {
+      console.error(`Error fetching ${factor} data:`, error);
       return rejectWithValue(error.message);
+    }
+  }
+);
+
+// Fetch data for all factors at once
+export const fetchAllCurrentData = createAsyncThunk(
+  "data/fetchAllCurrent",
+  async (_, { dispatch }) => {
+    const factors = ["humidity", "temperature", "moisture", "light"];
+    const results = {};
+    
+    try {
+      // Create an array of promises
+      const promises = factors.map(factor => 
+        dispatch(fetchCurrentData(factor))
+          .then(result => {
+            if (!result.error) {
+              results[factor] = result.payload.data;
+            }
+            return result;
+          })
+      );
+      
+      // Wait for all promises to resolve
+      await Promise.all(promises);
+      
+      return results;
+    } catch (error) {
+      console.error("Error fetching all sensor data:", error);
+      throw error;
     }
   }
 );
@@ -117,6 +154,11 @@ export const fetchThreshold = createAsyncThunk(
   "data/fetchThreshold",
   async (factor, { rejectWithValue }) => {
     try {
+      // Validate factor to ensure it's one of the allowed values
+      if (!["humidity", "temperature", "moisture", "light"].includes(factor)) {
+        throw new Error(`Invalid factor: ${factor}`);
+      }
+      
       const token = getAuthToken();
       const response = await fetch(`${BASE_URL}/${factor}/threshold`, {
         method: 'GET',
@@ -128,12 +170,13 @@ export const fetchThreshold = createAsyncThunk(
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch threshold. HTTP status: ${response.status}`);
+        throw new Error(`Failed to fetch threshold for ${factor}. HTTP status: ${response.status}`);
       }
 
       const threshold = await response.json();
       return { factor, threshold };
     } catch (error) {
+      console.error(`Error fetching ${factor} threshold:`, error);
       return rejectWithValue(error.message);
     }
   }
@@ -141,8 +184,18 @@ export const fetchThreshold = createAsyncThunk(
 
 export const updateThreshold = createAsyncThunk(
   "data/updateThreshold",
-  async ({ factor, threshold }, { rejectWithValue }) => {
+  async ({ factor, threshold }, { rejectWithValue, dispatch }) => {
     try {
+      // Validate factor to ensure it's one of the allowed values
+      if (!["humidity", "temperature", "moisture", "light"].includes(factor)) {
+        throw new Error(`Invalid factor: ${factor}`);
+      }
+      
+      // Validate that threshold has the expected format
+      if (!threshold || typeof threshold.upperbound !== 'number' || typeof threshold.lowerbound !== 'number') {
+        throw new Error('Invalid threshold format. Expected: { upperbound: number, lowerbound: number }');
+      }
+      
       const token = getAuthToken();
       const response = await fetch(`${BASE_URL}/${factor}/threshold`, {
         method: 'POST',
@@ -151,16 +204,156 @@ export const updateThreshold = createAsyncThunk(
           'Authorization': `Bearer ${token}`
         },
         credentials: 'include',
-        body: JSON.stringify({ threshold })
+        body: JSON.stringify(threshold)
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to update threshold. HTTP status: ${response.status}`);
+        throw new Error(`Failed to update threshold for ${factor}. HTTP status: ${response.status}`);
       }
 
       const updatedThreshold = await response.json();
+      
       return { factor, threshold: updatedThreshold };
     } catch (error) {
+      console.error(`Error updating ${factor} threshold:`, error);
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+// Fetch thresholds for all factors
+export const fetchAllThresholds = createAsyncThunk(
+  "data/fetchAllThresholds",
+  async (_, { dispatch }) => {
+    const factors = ["humidity", "temperature", "moisture", "light"];
+    const results = {};
+    
+    try {
+      // Create an array of promises
+      const promises = factors.map(factor => 
+        dispatch(fetchThreshold(factor))
+          .then(result => {
+            if (!result.error) {
+              results[factor] = result.payload.threshold;
+            }
+            return result;
+          })
+      );
+      
+      // Wait for all promises to resolve
+      await Promise.all(promises);
+      
+      return results;
+    } catch (error) {
+      console.error("Error fetching all thresholds:", error);
+      throw error;
+    }
+  }
+);
+
+// Fetch device modes (on/off status for fan, light, pump)
+export const fetchDeviceModes = createAsyncThunk(
+  "data/fetchDeviceModes",
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = getAuthToken();
+      const response = await fetch(`${BASE_URL}/mode`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch device modes. HTTP status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error fetching device modes:", error);
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+// Update device mode (turn on/off)
+export const updateDeviceMode = createAsyncThunk(
+  "data/updateDeviceMode",
+  async ({ device, state }, { rejectWithValue, getState }) => {
+    try {
+      const token = getAuthToken();
+      
+      const payload = {
+        mode: "Manual",  // Default to Manual mode
+        reqdevice: device,
+        state: state ? 1 : 0  // Convert boolean to 1/0
+      };
+            
+      // Submit the update
+      const response = await fetch(`${BASE_URL}/mode`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        credentials: 'include',
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update device mode. HTTP status: ${response.status}`);
+      }
+
+      // API may return the updated state, but to be safe we'll use our requested state
+      // and update the Redux store accordingly
+      const currentDevicesState = getState().data.devices;
+      
+      return {
+        ...currentDevicesState,
+        [device]: !!state, // Ensure boolean value
+        loading: false,
+        error: null
+      };
+    } catch (error) {
+      console.error("Error updating device mode:", error);
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+// New function to update system mode (Auto/Manual)
+export const updateSystemMode = createAsyncThunk(
+  "data/updateSystemMode",
+  async (mode, { rejectWithValue }) => {
+    try {
+      const token = getAuthToken();
+      
+      // Create payload for system mode change
+      const payload = {
+        mode: mode // "Auto" or "Manual"
+      };
+      
+      const response = await fetch(`${BASE_URL}/mode`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        credentials: 'include',
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update system mode. HTTP status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return { systemMode: mode, data };
+    } catch (error) {
+      console.error("Error updating system mode:", error);
       return rejectWithValue(error.message);
     }
   }
@@ -181,6 +374,13 @@ const initialState = {
     loading: false,
     error: null,
   },
+  moisture: {
+    current: null,
+    mode: null,
+    threshold: null,
+    loading: false,
+    error: null,
+  },
   light: {
     current: null,
     mode: null,
@@ -188,13 +388,15 @@ const initialState = {
     loading: false,
     error: null,
   },
-  gas: {
-    current: null,
-    mode: null,
-    threshold: null,
+  devices: {
+    fan: false,
+    fan2: false,
+    light: false,
+    pump: false,
     loading: false,
     error: null,
   },
+  systemMode: "Manual", // Add system mode tracking (Auto/Manual)
 };
 
 const dataSlice = createSlice({
@@ -204,8 +406,8 @@ const dataSlice = createSlice({
     clearDataErrors: (state) => {
       state.temperature.error = null;
       state.humidity.error = null;
+      state.moisture.error = null;
       state.light.error = null;
-      state.gas.error = null;
     },
   },
   extraReducers: (builder) => {
@@ -213,18 +415,24 @@ const dataSlice = createSlice({
     builder
       .addCase(fetchCurrentData.pending, (state, action) => {
         const factor = action.meta.arg;
-        state[factor].loading = true;
+        if (state[factor]) {
+          state[factor].loading = true;
+        }
       })
       .addCase(fetchCurrentData.fulfilled, (state, action) => {
         const { factor, data } = action.payload;
-        state[factor].current = data;
-        state[factor].loading = false;
-        state[factor].error = null;
+        if (state[factor]) {
+          state[factor].current = data;
+          state[factor].loading = false;
+          state[factor].error = null;
+        }
       })
       .addCase(fetchCurrentData.rejected, (state, action) => {
         const factor = action.meta.arg;
-        state[factor].loading = false;
-        state[factor].error = action.payload || 'Failed to fetch current data';
+        if (state[factor]) {
+          state[factor].loading = false;
+          state[factor].error = action.payload || `Failed to fetch current ${factor} data`;
+        }
       });
 
     // Handle refreshData
@@ -285,36 +493,99 @@ const dataSlice = createSlice({
     builder
       .addCase(fetchThreshold.pending, (state, action) => {
         const factor = action.meta.arg;
-        state[factor].loading = true;
+        if (state[factor]) {
+          state[factor].loading = true;
+        }
       })
       .addCase(fetchThreshold.fulfilled, (state, action) => {
         const { factor, threshold } = action.payload;
-        state[factor].threshold = threshold;
-        state[factor].loading = false;
-        state[factor].error = null;
+        if (state[factor]) {
+          state[factor].threshold = threshold;
+          state[factor].loading = false;
+          state[factor].error = null;
+        }
       })
       .addCase(fetchThreshold.rejected, (state, action) => {
         const factor = action.meta.arg;
-        state[factor].loading = false;
-        state[factor].error = action.payload || 'Failed to fetch threshold';
+        if (state[factor]) {
+          state[factor].loading = false;
+          state[factor].error = action.payload || `Failed to fetch ${factor} threshold`;
+        }
       });
 
     // Handle updateThreshold
     builder
       .addCase(updateThreshold.pending, (state, action) => {
         const { factor } = action.meta.arg;
-        state[factor].loading = true;
+        if (state[factor]) {
+          state[factor].loading = true;
+        }
       })
       .addCase(updateThreshold.fulfilled, (state, action) => {
         const { factor, threshold } = action.payload;
-        state[factor].threshold = threshold;
-        state[factor].loading = false;
-        state[factor].error = null;
+        if (state[factor]) {
+          // Ensure we're updating the threshold with the exact response from the server
+          state[factor].threshold = threshold;
+          state[factor].loading = false;
+          state[factor].error = null;
+        }
       })
       .addCase(updateThreshold.rejected, (state, action) => {
         const { factor } = action.meta.arg;
-        state[factor].loading = false;
-        state[factor].error = action.payload || 'Failed to update threshold';
+        if (state[factor]) {
+          state[factor].loading = false;
+          state[factor].error = action.payload || `Failed to update ${factor} threshold`;
+        }
+      });
+
+    // Handle fetchDeviceModes
+    builder
+      .addCase(fetchDeviceModes.pending, (state) => {
+        state.devices.loading = true;
+      })
+      .addCase(fetchDeviceModes.fulfilled, (state, action) => {
+        state.devices.loading = false;
+        state.devices = {
+          ...state.devices,
+          ...action.payload,
+          error: null
+        };
+      })
+      .addCase(fetchDeviceModes.rejected, (state, action) => {
+        state.devices.loading = false;
+        state.devices.error = action.payload || 'Failed to fetch device modes';
+      });
+
+    // Handle updateDeviceMode
+    builder
+      .addCase(updateDeviceMode.pending, (state) => {
+        state.devices.loading = true;
+      })
+      .addCase(updateDeviceMode.fulfilled, (state, action) => {
+        state.devices.loading = false;
+        state.devices = {
+          ...state.devices,
+          ...action.payload,
+          error: null
+        };
+      })
+      .addCase(updateDeviceMode.rejected, (state, action) => {
+        state.devices.loading = false;
+        state.devices.error = action.payload || 'Failed to update device mode';
+      });
+
+    // Handle updateSystemMode
+    builder
+      .addCase(updateSystemMode.pending, (state) => {
+        state.devices.loading = true;
+      })
+      .addCase(updateSystemMode.fulfilled, (state, action) => {
+        state.devices.loading = false;
+        state.systemMode = action.payload.systemMode;
+      })
+      .addCase(updateSystemMode.rejected, (state, action) => {
+        state.devices.loading = false;
+        state.devices.error = action.payload || 'Failed to update system mode';
       });
   },
 });

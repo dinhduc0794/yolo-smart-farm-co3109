@@ -1,102 +1,256 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { AlertCircle, Thermometer, Droplets, Gauge, Sun, Settings, ChevronDown, X } from 'lucide-react';
+import { AlertCircle, Thermometer, Droplets, Gauge, Sun, Settings, ChevronDown, X, Power, Activity } from 'lucide-react';
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchNotifications, markAllNotificationsAsRead } from '../../../store/LogSlice';
+import { 
+  fetchCurrentData, 
+  fetchAllCurrentData, 
+  fetchThreshold, 
+  fetchAllThresholds, 
+  updateThreshold,
+  fetchDeviceModes,
+  updateDeviceMode,
+  updateSystemMode
+} from '../../../store/DataSlice';
 
 const EnvironmentalDashboard = () => {
+  const dispatch = useDispatch();
+  
+  // Get data states from Redux store
+  const { notifications, notificationLoading } = useSelector(state => state.log);
+  const sensorData = useSelector(state => state.data);
+  
+  // Local state for zones with initial default values that will be replaced by API data
   const [zones, setZones] = useState([
     {
       id: 1,
       name: "Khu vực 1",
       metrics: {
         light: { 
-          value: 33.3, 
+          value: 0, 
           unit: "%", 
           status: "normal", 
           thresholds: { low: 10, normal: 20, high: 50 },
-          history: [29.5, 30.2, 31.8, 32.5, 33.3]
+          history: [0, 0, 0, 0, 0]
         },
         temperature: { 
-          value: 33, 
+          value: 0, 
           unit: "°C", 
           status: "normal", 
           thresholds: { low: 20, normal: 30, high: 35 },
-          history: [31, 31.5, 32, 32.5, 33]
+          history: [0, 0, 0, 0, 0]
         },
         humidity: { 
-          value: 60.2, 
+          value: 0, 
           unit: "%", 
           status: "normal", 
           thresholds: { low: 40, normal: 60, high: 80 },
-          history: [58.7, 59.1, 59.8, 60.0, 60.2]
+          history: [0, 0, 0, 0, 0]
         },
         soil: { 
-          value: 55, 
+          value: 0, 
           unit: "%", 
-          status: "high", 
+          status: "normal", 
           thresholds: { low: 30, normal: 45, high: 55 },
-          history: [51, 52, 53, 54, 55]
+          history: [0, 0, 0, 0, 0]
         }
       }
     }
   ]);
 
-  const dispatch = useDispatch();
-  const { notifications, notificationLoading, error } = useSelector(state => state.log);
-
+  // Other state variables
   const [showSetupModal, setShowSetupModal] = useState(false);
   const [currentSetup, setCurrentSetup] = useState(null);
   const [currentZone, setCurrentZone] = useState(null);
   const [viewMode, setViewMode] = useState("compact");
   const [collapsedZones, setCollapsedZones] = useState({});
 
+  // Fetch notifications, sensor data, thresholds and device modes on component mount
   useEffect(() => {
     dispatch(fetchNotifications());
-    const interval = setInterval(() => {
+    dispatch(fetchAllCurrentData());
+    dispatch(fetchAllThresholds());
+    dispatch(fetchDeviceModes());
+    
+    // Set up interval for periodic updates
+    const notificationInterval = setInterval(() => {
       dispatch(fetchNotifications());
     }, 30000);
-    return () => clearInterval(interval);
+    
+    const sensorInterval = setInterval(() => {
+      dispatch(fetchCurrentData("temperature"));
+      dispatch(fetchCurrentData("humidity"));
+      dispatch(fetchCurrentData("moisture"));
+      dispatch(fetchCurrentData("light"));
+      dispatch(fetchDeviceModes());
+    }, 10000);
+    
+    return () => {
+      clearInterval(notificationInterval);
+      clearInterval(sensorInterval);
+    };
   }, [dispatch]);
 
+  // Log the sensorData whenever it changes to debug
+  useEffect(() => {
+  }, [sensorData]);
+
+  // Filter unread notifications
   const unreadNotifications = useMemo(() => {
     return notifications.filter(notif => notif.newFlag === true);
   }, [notifications]);
 
+  // Update zone metrics when sensor data changes - modified to properly handle the API response format
   useEffect(() => {
-    const interval = setInterval(() => {
+    if (sensorData) {
       setZones(prevZones => {
         return prevZones.map(zone => {
           const updatedMetrics = { ...zone.metrics };
-          Object.keys(updatedMetrics).forEach(metricKey => {
-            const metric = updatedMetrics[metricKey];
-            const randomChange = (Math.random() * 2 - 1) * 0.5;
-            const newValue = Math.max(0, parseFloat((metric.value + randomChange).toFixed(1)));
-            const newHistory = [...metric.history.slice(1), newValue];
-            let newStatus = "normal";
-            if (newValue <= metric.thresholds.low) newStatus = "low";
-            else if (newValue >= metric.thresholds.high) newStatus = "high";
-            updatedMetrics[metricKey] = {
-              ...metric,
-              value: newValue,
-              status: newStatus,
-              history: newHistory
+          
+          // Map the API threshold data to zone metrics thresholds
+          if (sensorData.temperature?.threshold) {
+            updatedMetrics.temperature = {
+              ...updatedMetrics.temperature,
+              thresholds: {
+                low: sensorData.temperature.threshold.lowerbound,
+                normal: (sensorData.temperature.threshold.lowerbound + sensorData.temperature.threshold.upperbound) / 2,
+                high: sensorData.temperature.threshold.upperbound
+              }
             };
+          }
+          
+          if (sensorData.humidity?.threshold) {
+            updatedMetrics.humidity = {
+              ...updatedMetrics.humidity,
+              thresholds: {
+                low: sensorData.humidity.threshold.lowerbound,
+                normal: (sensorData.humidity.threshold.lowerbound + sensorData.humidity.threshold.upperbound) / 2,
+                high: sensorData.humidity.threshold.upperbound
+              }
+            };
+          }
+          
+          if (sensorData.moisture?.threshold) {
+            updatedMetrics.soil = {
+              ...updatedMetrics.soil,
+              thresholds: {
+                low: sensorData.moisture.threshold.lowerbound,
+                normal: (sensorData.moisture.threshold.lowerbound + sensorData.moisture.threshold.upperbound) / 2,
+                high: sensorData.moisture.threshold.upperbound
+              }
+            };
+          }
+          
+          if (sensorData.light?.threshold) {
+            updatedMetrics.light = {
+              ...updatedMetrics.light,
+              thresholds: {
+                low: sensorData.light.threshold.lowerbound,
+                normal: (sensorData.light.threshold.lowerbound + sensorData.light.threshold.upperbound) / 2,
+                high: sensorData.light.threshold.upperbound
+              }
+            };
+          }
+          
+          // Map the API data to zone metrics - handle the expected object structure { value: number }
+          if (sensorData.temperature?.current !== null && sensorData.temperature?.current !== undefined) {
+            const rawValue = typeof sensorData.temperature.current === 'object' && sensorData.temperature.current.value !== undefined 
+              ? sensorData.temperature.current.value 
+              : sensorData.temperature.current;
+              
+            const value = typeof rawValue === 'number' 
+              ? parseFloat(rawValue.toFixed(1)) 
+              : typeof rawValue === 'string' 
+                ? parseFloat(parseFloat(rawValue).toFixed(1)) 
+                : updatedMetrics.temperature.value;
+                
+            updatedMetrics.temperature = {
+              ...updatedMetrics.temperature,
+              value: value,
+              history: [...updatedMetrics.temperature.history.slice(1), value]
+            };
+          }
+          
+          if (sensorData.humidity?.current !== null && sensorData.humidity?.current !== undefined) {
+            const rawValue = typeof sensorData.humidity.current === 'object' && sensorData.humidity.current.value !== undefined 
+              ? sensorData.humidity.current.value 
+              : sensorData.humidity.current;
+              
+            const value = typeof rawValue === 'number' 
+              ? parseFloat(rawValue.toFixed(1)) 
+              : typeof rawValue === 'string' 
+                ? parseFloat(parseFloat(rawValue).toFixed(1)) 
+                : updatedMetrics.humidity.value;
+                
+            updatedMetrics.humidity = {
+              ...updatedMetrics.humidity,
+              value: value,
+              history: [...updatedMetrics.humidity.history.slice(1), value]
+            };
+          }
+          
+          if (sensorData.moisture?.current !== null && sensorData.moisture?.current !== undefined) {
+            const rawValue = typeof sensorData.moisture.current === 'object' && sensorData.moisture.current.value !== undefined 
+              ? sensorData.moisture.current.value 
+              : sensorData.moisture.current;
+              
+            const value = typeof rawValue === 'number' 
+              ? parseFloat(rawValue.toFixed(1)) 
+              : typeof rawValue === 'string' 
+                ? parseFloat(parseFloat(rawValue).toFixed(1)) 
+                : updatedMetrics.soil.value;
+                
+            updatedMetrics.soil = {
+              ...updatedMetrics.soil,
+              value: value,
+              history: [...updatedMetrics.soil.history.slice(1), value]
+            };
+          }
+          
+          if (sensorData.light?.current !== null && sensorData.light?.current !== undefined) {
+            const rawValue = typeof sensorData.light.current === 'object' && sensorData.light.current.value !== undefined 
+              ? sensorData.light.current.value 
+              : sensorData.light.current;
+              
+            const value = typeof rawValue === 'number' 
+              ? parseFloat(rawValue.toFixed(1)) 
+              : typeof rawValue === 'string' 
+                ? parseFloat(parseFloat(rawValue).toFixed(1)) 
+                : updatedMetrics.light.value;
+                
+            updatedMetrics.light = {
+              ...updatedMetrics.light,
+              value: value,
+              history: [...updatedMetrics.light.history.slice(1), value]
+            };
+          }
+          
+          // Update status for each metric
+          Object.keys(updatedMetrics).forEach(key => {
+            const metric = updatedMetrics[key];
+            let newStatus = "normal";
+            if (metric.value <= metric.thresholds.low) newStatus = "low";
+            else if (metric.value >= metric.thresholds.high) newStatus = "high";
+            updatedMetrics[key].status = newStatus;
           });
+          
           return { ...zone, metrics: updatedMetrics };
         });
       });
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
+    }
+  }, [
+    sensorData.temperature?.current, 
+    sensorData.humidity?.current, 
+    sensorData.moisture?.current, 
+    sensorData.light?.current,
+    sensorData.temperature?.threshold,
+    sensorData.humidity?.threshold,
+    sensorData.moisture?.threshold,
+    sensorData.light?.threshold
+  ]);
 
-  const toggleZoneCollapse = (zoneId) => {
-    setCollapsedZones(prev => ({
-      ...prev,
-      [zoneId]: !prev[zoneId]
-    }));
-  };
-
+  // Handle marking notifications as read
   const handleMarkAllAsRead = () => {
     if (unreadNotifications.length > 0) {
       dispatch(markAllNotificationsAsRead())
@@ -107,6 +261,17 @@ const EnvironmentalDashboard = () => {
           toast.error("Không thể đánh dấu thông báo: " + error);
         });
     }
+  };
+
+  // Manually refresh current sensor data
+  const handleRefreshData = () => {
+    dispatch(fetchAllCurrentData())
+      .then(() => {
+        toast.success("Dữ liệu đã được cập nhật");
+      })
+      .catch((error) => {
+        toast.error("Không thể cập nhật dữ liệu: " + error);
+      });
   };
 
   const getStatusColor = (status) => {
@@ -157,10 +322,21 @@ const EnvironmentalDashboard = () => {
       case 'light':
         return <Sun className="h-5 w-5 text-yellow-500" />;
       case 'fan':
+      case 'fan2':
         return <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-gray-500"><path d="M12 11C9.5 11 7.5 9 7.5 6.5S9.5 2 12 2s4.5 2 4.5 4.5-2 4.5-4.5 4.5z"></path><path d="M12 22c-2.5 0-4.5-2-4.5-4.5S9.5 13 12 13s4.5 2 4.5 4.5-2 4.5-4.5 4.5z"></path><path d="M19.6 6.5c1.2 2.1.1 4.8-2 6s-4.8.1-6-2-.1-4.8 2-6 4.8-.1 6 2z"></path><path d="M4.4 17.5c-1.2-2.1-.1-4.8 2-6s4.8-.1 6 2 .1 4.8-2 6-4.8.1-6-2z"></path></svg>;
       default:
         return <Settings className="h-5 w-5 text-gray-600" />;
     }
+  };
+
+  const getDeviceLabel = (device) => {
+    const deviceLabels = {
+      'fan': 'Quạt',
+      'fan2': 'Bơm nước',
+      'light': 'Đèn',
+      'pump': 'Phun hơi'
+    };
+    return deviceLabels[device] || device;
   };
 
   const getMetricLabel = (type) => {
@@ -205,28 +381,49 @@ const EnvironmentalDashboard = () => {
 
   const updateThresholds = () => {
     if (!currentZone || !currentSetup) return;
-    const { low, normal, high } = currentSetup.thresholds;
-    if (low >= normal || normal >= high) {
-      toast.error("Các ngưỡng phải được đặt theo thứ tự tăng dần (Thấp < Bình thường < Cao)");
+    
+    const { low, high } = currentSetup.thresholds;
+    if (low >= high) {
+      toast.error("Ngưỡng thấp phải nhỏ hơn ngưỡng cao");
       return;
     }
-    const updatedZones = zones.map(zone => {
-      if (zone.id === currentZone.id) {
-        const updatedMetrics = { ...zone.metrics };
-        updatedMetrics[currentSetup.metricType].thresholds = currentSetup.thresholds;
-        const value = updatedMetrics[currentSetup.metricType].value;
-        const thresholds = currentSetup.thresholds;
-        let newStatus = "normal";
-        if (value <= thresholds.low) newStatus = "low";
-        else if (value >= thresholds.high) newStatus = "high";
-        updatedMetrics[currentSetup.metricType].status = newStatus;
-        return { ...zone, metrics: updatedMetrics };
+    
+    const factorMap = {
+      temperature: 'temperature',
+      humidity: 'humidity',
+      soil: 'moisture',
+      light: 'light'
+    };
+    
+    const factor = factorMap[currentSetup.metricType];
+    
+    dispatch(updateThreshold({
+      factor,
+      threshold: {
+        lowerbound: low,
+        upperbound: high
       }
-      return zone;
+    }))
+    .then((result) => {
+      if (!result.error) {
+        toast.success(`Đã cập nhật ngưỡng ${getMetricLabel(currentSetup.metricType)} thành công`);
+        setShowSetupModal(false);
+        
+        // Refetch threshold data for the updated factor
+        dispatch(fetchThreshold(factor))
+          .then(() => {
+            console.log(`Refetched ${factor} threshold data after update`);
+          })
+          .catch((error) => {
+            console.error(`Error refetching ${factor} threshold:`, error);
+          });
+      } else {
+        toast.error(`Không thể cập nhật ngưỡng: ${result.error.message}`);
+      }
+    })
+    .catch((error) => {
+      toast.error(`Lỗi: ${error.message}`);
     });
-    setZones(updatedZones);
-    toast.success("Đã cập nhật ngưỡng thành công");
-    setShowSetupModal(false);
   };
 
   const renderMiniTrend = (history, status) => {
@@ -247,6 +444,13 @@ const EnvironmentalDashboard = () => {
         })}
       </div>
     );
+  };
+
+  const toggleZoneCollapse = (zoneId) => {
+    setCollapsedZones(prev => ({
+      ...prev,
+      [zoneId]: !prev[zoneId]
+    }));
   };
 
   const renderDetailedView = (zone) => {
@@ -337,6 +541,100 @@ const EnvironmentalDashboard = () => {
     );
   };
 
+  // Toggle device state
+  const toggleDevice = (device) => {
+    const currentState = sensorData.devices[device];
+    dispatch(updateDeviceMode({
+      device,
+      state: !currentState
+    }))
+    .then(() => {
+      toast.success(`${getDeviceLabel(device)} đã được ${!currentState ? 'bật' : 'tắt'}`);
+    })
+    .catch((error) => {
+      toast.error(`Không thể thay đổi trạng thái thiết bị: ${error.message}`);
+    });
+  };
+
+  // Toggle system mode between Auto and Manual
+  const toggleSystemMode = () => {
+    const newMode = sensorData.systemMode === "Auto" ? "Manual" : "Auto";
+    dispatch(updateSystemMode(newMode))
+    .then(() => {
+      toast.success(`Đã chuyển sang chế độ ${newMode === "Auto" ? "tự động" : "thủ công"}`);
+    })
+    .catch((error) => {
+      toast.error(`Không thể thay đổi chế độ hệ thống: ${error.message}`);
+    });
+  };
+
+  // Render device control block
+  const renderDeviceControls = () => {
+    const devices = ['fan', 'fan2', 'light', 'pump'];
+    const systemMode = sensorData.systemMode || "Manual";
+    
+    return (
+      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-lg font-semibold text-blue-800">Điều khiển thiết bị</h2>
+          
+          <div className="flex items-center">
+            <span className="text-sm text-gray-600 mr-3">Chế độ:</span>
+            <button 
+              onClick={toggleSystemMode}
+              disabled={sensorData.devices.loading}
+              className={`flex items-center px-4 py-2 rounded-full 
+                transition-colors ${systemMode === "Auto" ? 
+                'bg-green-500 hover:bg-green-600 text-white' : 
+                'bg-blue-500 hover:bg-blue-600 text-white'}`}
+            >
+              <Activity className="w-4 h-4 mr-2" />
+              {systemMode === "Auto" ? "Tự động" : "Thủ công"}
+            </button>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {devices.map(device => {
+            const isActive = sensorData.devices[device];
+            return (
+              <div 
+                key={device} 
+                className={`p-4 rounded-lg border border-gray-200 ${isActive ? 'bg-green-50' : 'bg-gray-50'}`}
+              >
+                <div className="flex flex-col items-center">
+                  {getDeviceIcon(device)}
+                  <h3 className="my-2 text-gray-700 font-medium">{getDeviceLabel(device)}</h3>
+                  <button
+                    onClick={() => toggleDevice(device)}
+                    disabled={sensorData.devices.loading || systemMode === "Auto"}
+                    className={`flex items-center justify-center w-12 h-12 rounded-full transition-colors 
+                      ${isActive 
+                        ? 'bg-green-500 hover:bg-green-600 text-white' 
+                        : 'bg-gray-300 hover:bg-gray-400 text-gray-700'
+                      }
+                      ${(sensorData.devices.loading || systemMode === "Auto") ? 'opacity-50 cursor-not-allowed' : ''}
+                    `}
+                  >
+                    <Power className="w-6 h-6" />
+                  </button>
+                  <p className="mt-2 text-sm text-gray-500">
+                    {isActive ? 'Đang hoạt động' : 'Đang tắt'}
+                  </p>
+                  {systemMode === "Auto" && (
+                    <p className="text-xs text-orange-500 mt-1">
+                      (Điều khiển tự động)
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b sticky top-0 z-10 shadow-sm">
@@ -358,6 +656,22 @@ const EnvironmentalDashboard = () => {
                 Chi tiết
               </button>
             </div>
+            
+            <button
+              className="px-3 py-1 rounded text-sm font-medium bg-green-100 text-green-800"
+              onClick={handleRefreshData}
+              disabled={
+                sensorData.temperature?.loading || 
+                sensorData.humidity?.loading ||
+                sensorData.moisture?.loading ||
+                sensorData.light?.loading
+              }
+            >
+              {(sensorData.temperature?.loading || 
+                sensorData.humidity?.loading ||
+                sensorData.moisture?.loading ||
+                sensorData.light?.loading) ? "Đang cập nhật..." : "Cập nhật dữ liệu"}
+            </button>
           </div>
         </div>
       </div>
@@ -396,6 +710,10 @@ const EnvironmentalDashboard = () => {
       )}
 
       <div className="container mx-auto py-6 px-4">
+        {/* Device Controls Section */}
+        {renderDeviceControls()}
+        
+        {/* Sensor Data Zones */}
         {zones.map((zone) => (
           <div key={zone.id} className="mb-6 border rounded-lg overflow-hidden bg-white shadow">
             <div 
@@ -415,6 +733,24 @@ const EnvironmentalDashboard = () => {
         ))}
       </div>
 
+      {(sensorData.temperature?.error || 
+        sensorData.humidity?.error ||
+        sensorData.moisture?.error ||
+        sensorData.light?.error) && (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+          <div className="flex items-center">
+            <AlertCircle className="h-5 w-5 text-red-500" />
+            <h3 className="ml-2 text-sm font-medium text-red-800">Lỗi khi tải dữ liệu cảm biến</h3>
+          </div>
+          <div className="mt-2 text-sm text-red-700">
+            {sensorData.temperature?.error && <p>Nhiệt độ: {sensorData.temperature.error}</p>}
+            {sensorData.humidity?.error && <p>Độ ẩm không khí: {sensorData.humidity.error}</p>}
+            {sensorData.moisture?.error && <p>Độ ẩm đất: {sensorData.moisture.error}</p>}
+            {sensorData.light?.error && <p>Cường độ ánh sáng: {sensorData.light.error}</p>}
+          </div>
+        </div>
+      )}
+
       {showSetupModal && currentSetup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
@@ -430,9 +766,10 @@ const EnvironmentalDashboard = () => {
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Ngưỡng thấp</label>
+                <label className="block text-sm font-medium text-gray-700">Ngưỡng thấp (Lowerbound)</label>
                 <input
                   type="number"
+                  step="0.1"
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                   value={currentSetup.thresholds.low}
                   onChange={(e) => setCurrentSetup({
@@ -447,26 +784,10 @@ const EnvironmentalDashboard = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700">Ngưỡng bình thường</label>
+                <label className="block text-sm font-medium text-gray-700">Ngưỡng cao (Upperbound)</label>
                 <input
                   type="number"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                  value={currentSetup.thresholds.normal}
-                  onChange={(e) => setCurrentSetup({
-                    ...currentSetup,
-                    thresholds: {
-                      ...currentSetup.thresholds,
-                      normal: parseFloat(e.target.value)
-                    }
-                  })}
-                />
-                <p className="text-xs text-gray-500 mt-1">Giá trị tham chiếu cho mức bình thường</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Ngưỡng cao</label>
-                <input
-                  type="number"
+                  step="0.1"
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                   value={currentSetup.thresholds.high}
                   onChange={(e) => setCurrentSetup({
@@ -481,7 +802,7 @@ const EnvironmentalDashboard = () => {
               </div>
 
               <div className="p-3 bg-blue-50 rounded-md border border-blue-100 text-sm text-blue-800">
-                <p>Lưu ý: Các ngưỡng phải được đặt theo thứ tự tăng dần (Thấp &lt; Bình thường &lt; Cao)</p>
+                <p>Lưu ý: Ngưỡng thấp (Lowerbound) phải nhỏ hơn Ngưỡng cao (Upperbound)</p>
               </div>
             </div>
             
@@ -497,8 +818,11 @@ const EnvironmentalDashboard = () => {
                 type="button"
                 className="px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700"
                 onClick={updateThresholds}
+                disabled={sensorData[currentSetup.metricType === 'soil' ? 'moisture' : currentSetup.metricType]?.loading}
               >
-                Lưu thay đổi
+                {sensorData[currentSetup.metricType === 'soil' ? 'moisture' : currentSetup.metricType]?.loading 
+                  ? "Đang cập nhật..." 
+                  : "Lưu thay đổi"}
               </button>
             </div>
           </div>

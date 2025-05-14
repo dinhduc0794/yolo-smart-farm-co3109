@@ -114,7 +114,6 @@ const Sidebar = () => {
           alt="User avatar"
           className="object-contain rounded-full aspect-square w-[70px]"
         />
-        <div>User</div>
         <nav
           className={`flex flex-col self-stretch w-full ${
             isLoading ? "pointer-events-none opacity-50" : ""
