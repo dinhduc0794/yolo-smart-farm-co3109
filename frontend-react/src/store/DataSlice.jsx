@@ -2,15 +2,22 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 const BASE_URL = `${import.meta.env.VITE_REACT_APP_BE_API_URL || "http://localhost:8085"}/api`;
 
+// Function to get auth token from localStorage
+const getAuthToken = () => {
+  return localStorage.getItem('token') || '';
+};
+
 // Async thunks for sensor data
 export const fetchCurrentData = createAsyncThunk(
   "data/fetchCurrent",
   async (factor, { rejectWithValue }) => {
     try {
+      const token = getAuthToken();
       const response = await fetch(`${BASE_URL}/${factor}/current`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         credentials: 'include'
       });
@@ -31,10 +38,12 @@ export const refreshData = createAsyncThunk(
   "data/refresh",
   async (factor, { rejectWithValue }) => {
     try {
+      const token = getAuthToken();
       const response = await fetch(`${BASE_URL}/${factor}/refresh`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         credentials: 'include'
       });
@@ -55,10 +64,12 @@ export const fetchDataMode = createAsyncThunk(
   "data/fetchMode",
   async (factor, { rejectWithValue }) => {
     try {
+      const token = getAuthToken();
       const response = await fetch(`${BASE_URL}/${factor}/mode`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         credentials: 'include'
       });
@@ -79,10 +90,12 @@ export const updateDataMode = createAsyncThunk(
   "data/updateMode",
   async ({ factor, mode }, { rejectWithValue }) => {
     try {
+      const token = getAuthToken();
       const response = await fetch(`${BASE_URL}/${factor}/mode`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         credentials: 'include',
         body: JSON.stringify({ mode })
@@ -104,10 +117,12 @@ export const fetchThreshold = createAsyncThunk(
   "data/fetchThreshold",
   async (factor, { rejectWithValue }) => {
     try {
+      const token = getAuthToken();
       const response = await fetch(`${BASE_URL}/${factor}/threshold`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         credentials: 'include'
       });
@@ -128,10 +143,12 @@ export const updateThreshold = createAsyncThunk(
   "data/updateThreshold",
   async ({ factor, threshold }, { rejectWithValue }) => {
     try {
+      const token = getAuthToken();
       const response = await fetch(`${BASE_URL}/${factor}/threshold`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         credentials: 'include',
         body: JSON.stringify({ threshold })

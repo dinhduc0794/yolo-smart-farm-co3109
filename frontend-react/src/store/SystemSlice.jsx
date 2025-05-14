@@ -2,12 +2,22 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 const BASE_URL = `${import.meta.env.VITE_REACT_APP_BE_API_URL || "http://localhost:8085"}/api`;
 
+// Function to get auth token from localStorage
+const getAuthToken = () => {
+  return localStorage.getItem('token') || '';
+};
+
 // Async thunks for system
 export const fetchSystemStats = createAsyncThunk(
   "system/fetchStats",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`${BASE_URL}/system/stat`);
+      const token = getAuthToken();
+      const response = await axios.get(`${BASE_URL}/system/stat`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -19,7 +29,12 @@ export const fetchSystemMode = createAsyncThunk(
   "system/fetchMode",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`${BASE_URL}/system/systemmode`);
+      const token = getAuthToken();
+      const response = await axios.get(`${BASE_URL}/system/systemmode`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -31,10 +46,12 @@ export const updateSystemMode = createAsyncThunk(
   "system/updateMode",
   async (mode, { rejectWithValue }) => {
     try {
+      const token = getAuthToken();
       const response = await fetch(`${BASE_URL}/system/systemmode`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         credentials: 'include',
         body: JSON.stringify({ mode })
@@ -56,7 +73,12 @@ export const fetchOperationMode = createAsyncThunk(
   "system/fetchOperationMode",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`${BASE_URL}/mode`);
+      const token = getAuthToken();
+      const response = await axios.get(`${BASE_URL}/mode`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -68,7 +90,12 @@ export const updateOperationMode = createAsyncThunk(
   "system/updateOperationMode",
   async (mode, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${BASE_URL}/mode`, { mode });
+      const token = getAuthToken();
+      const response = await axios.post(`${BASE_URL}/mode`, { mode }, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);

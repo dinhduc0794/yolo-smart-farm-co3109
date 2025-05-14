@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import InputField from "../fragments/InputField/InputField";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useDispatch, useSelector } from "react-redux";
+import { updateUserPassword, resetUpdateStatus } from "../../../store/UserSlice";
 
 function ChangePassword() {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -10,6 +12,49 @@ function ChangePassword() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  const dispatch = useDispatch();
+  const { profile, loading, error, passwordUpdateSuccess } = useSelector(state => state.user);
+  const username = profile?.username;
+  
+  useEffect(() => {
+    if (passwordUpdateSuccess) {
+      toast.success("Đổi mật khẩu thành công!");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      dispatch(resetUpdateStatus());
+    }
+    
+    if (error) {
+      toast.error(error);
+      dispatch(resetUpdateStatus());
+    }
+  }, [passwordUpdateSuccess, error, dispatch]);
+  
+  const HandlePassword = () => {
+    // Basic validation
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast.error("Vui lòng điền đầy đủ thông tin!");
+      return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      toast.error("Mật khẩu mới không khớp với mật khẩu xác nhận!");
+      return;
+    }
+    
+    if (newPassword.length < 6) {
+      toast.error("Mật khẩu mới phải có ít nhất 6 ký tự!");
+      return;
+    }
+    
+    // Dispatch action to update password
+    dispatch(updateUserPassword({
+      curPassword: currentPassword,
+      newPassword: newPassword
+    }));
+  };
 
   return (
     <div className="w-full sm:w-3/5 m-auto bg-white shadow-md rounded-lg p-6 sm:p-10 mt-10">
@@ -72,17 +117,11 @@ function ChangePassword() {
 
       <div className="flex justify-center">
         <button
-          onClick={() =>
-            HandlePassword(
-              username,
-              currentPassword,
-              newPassword,
-              confirmPassword
-            )
-          }
-          className="self-center px-12 py-4 text-base font-semibold text-white uppercase bg-[#B08B4F] hover:bg-[#976C42] transition duration-300 rounded-xl w-full sm:w-auto shadow-lg"
+          onClick={HandlePassword}
+          disabled={loading}
+          className={`self-center px-12 py-4 text-base font-semibold text-white uppercase bg-[#B08B4F] hover:bg-[#976C42] transition duration-300 rounded-xl w-full sm:w-auto shadow-lg ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
         >
-          XÁC NHẬN
+          {loading ? "ĐANG XỬ LÝ..." : "XÁC NHẬN"}
         </button>
       </div>
     </div>

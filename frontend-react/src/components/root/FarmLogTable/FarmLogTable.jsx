@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { X, ChevronDown, ChevronUp } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchLogs } from '../../../store/LogSlice';
 
 // FilterInput với màu vintage (focus ring thay đổi)
 const FilterInput = ({ label, value, onChange, type = "text" }) => (
@@ -11,29 +13,6 @@ const FilterInput = ({ label, value, onChange, type = "text" }) => (
       onChange={onChange}
       className="block w-full md:w-48 px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#A0522D] focus:border-[#A0522D]"
     />
-  </div>
-);
-
-// DeviceSelect dành cho thiết bị Smart Farm
-const DeviceSelect = ({ value, onChange, devices }) => (
-  <div className="w-full md:w-auto mb-4 md:mb-0">
-    <label className="block text-sm font-medium text-gray-700 mb-1">CHỌN THIẾT BỊ</label>
-    <select
-      value={value}
-      onChange={onChange}
-      className="block w-full md:w-48 px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-[#A0522D] focus:border-[#A0522D]"
-    >
-      <option value="reset">Tất cả thiết bị</option>
-      {devices.length > 0 ? (
-        devices.map((device) => (
-          <option key={device.device_id} value={device.device_id}>
-            {`${device.device_name} - ${device.khuVuc}`}
-          </option>
-        ))
-      ) : (
-        <option value="" disabled>Không có thiết bị nào</option>
-      )}
-    </select>
   </div>
 );
 
@@ -52,7 +31,7 @@ const MobileTableRow = ({ row, headers, onClick }) => (
   </div>
 );
 
-// Modal chi tiết lịch sử sử dụng thiết bị (Smart Farm)
+// Modal chi tiết nhật ký hoạt động Smart Farm
 const UsageHistoryDetail = React.memo(({ isOpen, onClose, data }) => {
   if (!isOpen) return null;
 
@@ -71,26 +50,11 @@ const UsageHistoryDetail = React.memo(({ isOpen, onClose, data }) => {
   );
 
   const sections = {
-    basic: {
-      title: "Thông tin cơ bản",
-      items: [
-        ['ID thiết bị', data.device_id],
-        ['Tên thiết bị', data.device_name],
-        ['Khu vực', data.khuVuc]
-      ]
-    },
     details: {
-      title: "Chi tiết sử dụng",
+      title: "Chi tiết hoạt động",
       items: [
-        ['Giờ bắt đầu', data.usage_start],
-        ['Giờ kết thúc', data.usage_end],
-        ['Năng lượng tiêu thụ', data.energy_consumption]
-      ]
-    },
-    time: {
-      title: "Thời gian",
-      items: [
-        ['Ngày sử dụng', data.usage_date]
+        ['Nội dung', data.content],
+        ['Thời gian', data.dtime]
       ]
     }
   };
@@ -106,7 +70,7 @@ const UsageHistoryDetail = React.memo(({ isOpen, onClose, data }) => {
             <X size={24} />
           </button>
           <h2 className="text-xl md:text-2xl font-bold mb-6 text-[#8B4513]">
-            Chi tiết lịch sử sử dụng thiết bị Smart Farm
+            Chi tiết nhật ký hoạt động Smart Farm
           </h2>
           <div className="overflow-y-auto max-h-[70vh] px-2">
             {Object.values(sections).map((section) => (
@@ -119,59 +83,28 @@ const UsageHistoryDetail = React.memo(({ isOpen, onClose, data }) => {
   );
 });
 
-// Dummy data cho lịch sử sử dụng thiết bị Smart Farm
-const dummyLogs = [
-  {
-    device_id: "D001",
-    device_name: "Máy bơm tưới 1",
-    khuVuc: "Khu A",
-    usage_start: "06:00",
-    usage_end: "06:30",
-    usage_date: "2025-02-23",
-    energy_consumption: "3 kWh"
-  },
-  {
-    device_id: "D002",
-    device_name: "Hệ thống chiếu sáng",
-    khuVuc: "Khu A",
-    usage_start: "18:00",
-    usage_end: "23:00",
-    usage_date: "2025-02-23",
-    energy_consumption: "5 kWh"
-  },
-  // Có thể thêm dữ liệu mẫu khác nếu cần
-];
-
-// Dummy data cho danh sách thiết bị (dùng trong filter)
-const dummyDevices = [
-  {
-    device_id: "D001",
-    device_name: "Máy bơm tưới 1",
-    khuVuc: "Khu A"
-  },
-  {
-    device_id: "D002",
-    device_name: "Hệ thống chiếu sáng",
-    khuVuc: "Khu A"
-  }
-];
-
 const DeviceUsageHistory = () => {
   // Giả sử role có thể là 'ADMIN' hoặc 'USER'
   const role = "ADMIN";
 
+  const dispatch = useDispatch();
+  const { logs, loading, error } = useSelector(state => state.log);
+
   const [selectedRow, setSelectedRow] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
   const [filters, setFilters] = useState({
-    deviceName: '',
-    deviceId: 'reset',
+    content: '',
     dateStart: '',
     dateEnd: ''
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const [debouncedDeviceName, setDebouncedDeviceName] = useState(filters.deviceName);
+  const [debouncedContent, setDebouncedContent] = useState(filters.content);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const rowsPerPage = isMobile ? 5 : 7;
+
+  useEffect(() => {
+    dispatch(fetchLogs());
+  }, [dispatch]);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -184,34 +117,40 @@ const DeviceUsageHistory = () => {
     setShowDetail(true);
   };
 
-  // Lọc dữ liệu từ dummyLogs dựa trên filters
-  const logs = useMemo(() => {
-    let filtered = dummyLogs;
-    if (filters.deviceName.trim()) {
+  // Lọc dữ liệu từ API dựa trên filters
+  const filteredLogs = useMemo(() => {
+    if (!logs) return [];
+    
+    let filtered = logs;
+    if (filters.content.trim()) {
       filtered = filtered.filter(log =>
-        log.device_name.toLowerCase().includes(filters.deviceName.toLowerCase())
+        log.content.toLowerCase().includes(filters.content.toLowerCase())
       );
     }
-    if (filters.deviceId !== 'reset') {
-      filtered = filtered.filter(log => log.device_id === filters.deviceId);
-    }
+    
     if (filters.dateStart) {
-      filtered = filtered.filter(log => log.usage_date >= filters.dateStart);
+      const startDate = new Date(filters.dateStart);
+      filtered = filtered.filter(log => {
+        const logDate = new Date(log.dtime.split(' ')[0].split('/').reverse().join('-'));
+        return logDate >= startDate;
+      });
     }
+    
     if (filters.dateEnd) {
-      filtered = filtered.filter(log => log.usage_date <= filters.dateEnd);
+      const endDate = new Date(filters.dateEnd);
+      filtered = filtered.filter(log => {
+        const logDate = new Date(log.dtime.split(' ')[0].split('/').reverse().join('-'));
+        return logDate <= endDate;
+      });
     }
+    
     return filtered;
-  }, [filters]);
+  }, [logs, filters, debouncedContent]);
 
   const tableHeaders = useMemo(() => {
     const headers = [
-      { key: 'device_id', label: 'ID thiết bị' },
-      { key: 'device_name', label: 'Tên thiết bị' },
-      { key: 'khuVuc', label: 'Khu vực' },
-      { key: 'usage_start', label: 'Giờ bắt đầu' },
-      { key: 'usage_end', label: 'Giờ kết thúc' },
-      { key: 'usage_date', label: 'Ngày sử dụng' }
+      { key: 'content', label: 'Nội dung' },
+      { key: 'dtime', label: 'Thời gian' }
     ];
     return headers;
   }, []);
@@ -225,48 +164,41 @@ const DeviceUsageHistory = () => {
     setCurrentPage(1);
   }, []);
 
-  // Debounce cho trường Tên thiết bị
+  // Debounce cho trường Nội dung
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedDeviceName(filters.deviceName);
+      setDebouncedContent(filters.content);
     }, 1000);
     return () => clearTimeout(timer);
-  }, [filters.deviceName]);
+  }, [filters.content]);
 
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentRows = logs.slice(indexOfFirstRow, indexOfLastRow);
-  const totalPages = Math.ceil(logs.length / rowsPerPage);
+  const currentRows = filteredLogs.slice(indexOfFirstRow, indexOfLastRow);
+  const totalPages = Math.ceil(filteredLogs.length / rowsPerPage);
 
   return (
     <div className="min-h-screen p-4 md:p-8">
       <h1 className="text-xl md:text-2xl font-bold text-center mb-8 text-[#8B4513]">
-        LỊCH SỬ SỬ DỤNG THIẾT BỊ SMART FARM
+        NHẬT KÝ HOẠT ĐỘNG SMART FARM
       </h1>
 
       {/* Bộ lọc */}
       <div className="rounded-lg shadow-md p-4 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {role === "ADMIN" && (
-            <FilterInput
-              label="Tên thiết bị"
-              value={filters.deviceName}
-              onChange={handleFilterChange('deviceName')}
-            />
-          )}
-          <DeviceSelect
-            value={filters.deviceId}
-            onChange={handleFilterChange('deviceId')}
-            devices={dummyDevices}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <FilterInput
+            label="Nội dung"
+            value={filters.content}
+            onChange={handleFilterChange('content')}
           />
           <FilterInput
-            label="TỪ"
+            label="TỪ NGÀY"
             value={filters.dateStart}
             onChange={handleFilterChange('dateStart')}
             type="date"
           />
           <FilterInput
-            label="ĐẾN"
+            label="ĐẾN NGÀY"
             value={filters.dateEnd}
             onChange={handleFilterChange('dateEnd')}
             type="date"
@@ -275,7 +207,15 @@ const DeviceUsageHistory = () => {
       </div>
 
       {/* Hiển thị bảng dữ liệu */}
-      {logs.length > 0 ? (
+      {loading ? (
+        <div className="text-center py-8 text-gray-600 bg-[#FAF0E6] rounded-lg shadow">
+          Đang tải dữ liệu...
+        </div>
+      ) : error ? (
+        <div className="text-center py-8 text-red-600 bg-[#FAF0E6] rounded-lg shadow">
+          Lỗi: {error}
+        </div>
+      ) : filteredLogs.length > 0 ? (
         <>
           {isMobile ? (
             <div className="space-y-4">
@@ -342,7 +282,7 @@ const DeviceUsageHistory = () => {
         </>
       ) : (
         <div className="text-center py-8 text-gray-600 bg-[#FAF0E6] rounded-lg shadow">
-          Không có dữ liệu lịch sử sử dụng thiết bị
+          Không có dữ liệu nhật ký hoạt động
         </div>
       )}
 

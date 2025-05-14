@@ -2,15 +2,22 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 const BASE_URL = `${import.meta.env.VITE_REACT_APP_BE_API_URL || "http://localhost:8085"}/api/log`;
 
+// Function to get auth token from localStorage
+const getAuthToken = () => {
+  return localStorage.getItem('token') || '';
+};
+
 // Async thunks for logs
 export const fetchLogs = createAsyncThunk(
   "log/fetchLogs",
   async (_, { rejectWithValue }) => {
     try {
+      const token = getAuthToken();
       const response = await fetch(`${BASE_URL}/log`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         credentials: 'include'
       });
@@ -31,10 +38,12 @@ export const fetchNotifications = createAsyncThunk(
   "log/fetchNotifications",
   async (_, { rejectWithValue }) => {
     try {
+      const token = getAuthToken();
       const response = await fetch(`${BASE_URL}/notification`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         credentials: 'include'
       });
