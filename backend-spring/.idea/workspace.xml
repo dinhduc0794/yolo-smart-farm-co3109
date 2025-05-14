@@ -4,14 +4,76 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="0f1c1d27-89a8-4590-8fbd-3a40a48c940d" name="Changes" comment="" />
+    <list default="true" id="0f1c1d27-89a8-4590-8fbd-3a40a48c940d" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/backend-spring.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.vscode/settings.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/.gitattributes" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/.mvn/wrapper/maven-wrapper.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/mvnw" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/mvnw.cmd" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/YoloFarmApplication.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/config/AppConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/config/FactorFilter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/config/JwtRequestFilter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/config/JwtUtil.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/config/SecurityConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/controller/AuthController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/controller/DataController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/controller/LogController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/controller/SystemController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/controller/UserController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/dto/request/ModeRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/dto/request/SignInRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/dto/request/SignUpRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/dto/request/ThresholdRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/dto/request/UpdatePasswordRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/dto/request/UpdateUserRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/dto/response/LogResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/dto/response/NotificationResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/dto/response/UserResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/model/ActivityLog.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/model/Device.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/model/Factor.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/model/Notification.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/model/Stat.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/model/User.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/repository/ActivityLogRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/repository/DeviceRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/repository/FactorRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/repository/NotificationRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/repository/StatRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/repository/UserRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/service/ActivityLogService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/service/AdafruitService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/service/AuthService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/service/CustomUserDetailsService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/service/DataService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/service/LogService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/service/SystemService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/service/UserService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/resources/application.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/resources/static/css/login.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/resources/static/js/login.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/resources/templates/homePage.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/resources/templates/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/main/resources/templates/login.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/yolo-farm/src/test/java/com/javaweb/yolo_farm/YoloFarmApplicationTests.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
   &quot;lastFilter&quot;: {
@@ -35,27 +97,27 @@
     <option name="showExcludedFiles" value="false" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RequestMappingsPanelOrder0": "0",
-    "RequestMappingsPanelOrder1": "1",
-    "RequestMappingsPanelWidth0": "75",
-    "RequestMappingsPanelWidth1": "75",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "Spring Boot.YoloFarmApplication.executor": "Run",
-    "git-widget-placeholder": "main",
-    "ignore.virus.scanning.warn.message": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/242/yolo-smart-farm-co3109-be-dev/yolo-smart-farm-co3109-be-dev/backend-spring",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
+    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;Spring Boot.YoloFarmApplication.executor&quot;: &quot;Run&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/242/New folder/yolo-smart-farm-co3109/backend-spring&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="YoloFarmApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="yolo-farm" />
@@ -83,6 +145,8 @@
       <updated>1742525467535</updated>
       <workItem from="1742525468590" duration="718000" />
       <workItem from="1747034189772" duration="6265000" />
+      <workItem from="1747225812102" duration="678000" />
+      <workItem from="1747227085880" duration="1208000" />
     </task>
     <servers />
   </component>
@@ -150,26 +214,6 @@
           <url>file://$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/service/LogService.java</url>
           <line>29</line>
           <option name="timeStamp" value="9" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/controller/LogController.java</url>
-          <line>27</line>
-          <option name="timeStamp" value="11" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/controller/LogController.java</url>
-          <line>28</line>
-          <option name="timeStamp" value="12" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/controller/LogController.java</url>
-          <line>30</line>
-          <option name="timeStamp" value="13" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/controller/LogController.java</url>
-          <line>29</line>
-          <option name="timeStamp" value="14" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/yolo-farm/src/main/java/com/javaweb/yolo_farm/service/LogService.java</url>
