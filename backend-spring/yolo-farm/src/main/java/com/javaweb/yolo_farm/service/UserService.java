@@ -28,17 +28,11 @@ public class UserService {
     public Map<String, String> updateUser(String userId, UpdateUserRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Incorrect current password");
-        }
-
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setAddress(request.getAddress());
         user.setPhoneno(request.getPhoneno());
         userRepository.save(user);
-
         Map<String, String> response = new HashMap<>();
         response.put("name", user.getName());
         response.put("email", user.getEmail());
