@@ -1,12 +1,12 @@
 package com.javaweb.yolo_farm.controller;
 
-import com.javaweb.yolo_farm.service.LogService;
+import com.javaweb.yolo_farm.service.ILogService;
+import com.javaweb.yolo_farm.service.impl.LogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -14,7 +14,7 @@ import java.util.Map;
 public class LogController {
 
     @Autowired
-    private LogService logService;
+    private ILogService logService;
 
     private String getUserId() {
         return SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();

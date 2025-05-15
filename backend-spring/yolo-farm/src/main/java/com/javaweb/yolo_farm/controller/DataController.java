@@ -2,7 +2,8 @@ package com.javaweb.yolo_farm.controller;
 
 import com.javaweb.yolo_farm.dto.request.ModeRequest;
 import com.javaweb.yolo_farm.dto.request.ThresholdRequest;
-import com.javaweb.yolo_farm.service.DataService;
+import com.javaweb.yolo_farm.service.IDataService;
+import com.javaweb.yolo_farm.service.impl.DataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,7 +16,7 @@ import java.util.Map;
 public class DataController {
 
     @Autowired
-    private DataService dataService;
+    private IDataService dataService;
 
     private String getUserId() {
         return SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();

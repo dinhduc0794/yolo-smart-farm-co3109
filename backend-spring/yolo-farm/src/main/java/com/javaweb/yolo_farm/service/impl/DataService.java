@@ -1,4 +1,4 @@
-package com.javaweb.yolo_farm.service;
+package com.javaweb.yolo_farm.service.impl;
 
 import com.javaweb.yolo_farm.dto.request.ModeRequest;
 import com.javaweb.yolo_farm.dto.request.ThresholdRequest;
@@ -10,6 +10,7 @@ import com.javaweb.yolo_farm.repository.DeviceRepository;
 import com.javaweb.yolo_farm.repository.FactorRepository;
 import com.javaweb.yolo_farm.repository.NotificationRepository;
 import com.javaweb.yolo_farm.repository.StatRepository;
+import com.javaweb.yolo_farm.service.IDataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-public class DataService {
+public class DataService implements IDataService {
 
     @Autowired
     private FactorRepository factorRepository;
@@ -60,6 +61,7 @@ public class DataService {
             "light", "lux"
     );
 
+    @Override
     public Map<String, Object> getMode(String userId, String factorName) {
         Factor factor = factorRepository.findByUserIDAndName(userId, factorName)
                 .orElseGet(() -> createFactor(userId, factorName));
@@ -76,6 +78,7 @@ public class DataService {
         );
     }
 
+    @Override
     public Map<String, Object> putMode(String userId, String factorName) {
         String deviceName = FACTOR_DEVICE_MAP.get(factorName);
         if (deviceName == null) {
@@ -97,6 +100,7 @@ public class DataService {
         );
     }
 
+    @Override
     public Map<String, String> postMode(String userId, ModeRequest request, String factorName) {
         String mode = request.getMode();
         if (!List.of("Auto", "Manual").contains(mode)) {
@@ -128,6 +132,7 @@ public class DataService {
         return Map.of("message", "Changed manual to auto");
     }
 
+    @Override
     public Map<String, Object> getCurrent(String userId, String factorName) {
 
         String unit = FACTOR_UNIT_MAP.get(factorName);
@@ -138,6 +143,7 @@ public class DataService {
     }
 
 
+    @Override
     public Map<String, Object> refresh(String userId, String factorName) {
         List<Factor> list = factorRepository.findAllByUserIDAndName(userId, factorName);
         Factor factor = list.isEmpty()
@@ -147,6 +153,7 @@ public class DataService {
         return Map.of("value", value);
     }
 
+    @Override
     public Map<String, Double> getThreshold(String userId, String factorName) {
         List<Factor> factor = factorRepository.findAllByUserIDAndName(userId,factorName);
         return Map.of(
@@ -155,6 +162,7 @@ public class DataService {
         );
     }
 
+    @Override
     public Map<String, String> postThreshold(String userId, String factorName, ThresholdRequest request) {
         double upperbound = request.getUpperbound();
         double lowerbound = request.getLowerbound();
@@ -170,6 +178,7 @@ public class DataService {
         return Map.of("message", "Threshold updated");
     }
 
+    @Override
     public Map<String, String> toggleMode(String userId, ModeRequest request) {
         String deviceName = request.getReqdevice();
         if (!List.of("fan", "awning", "pump", "light").contains(deviceName)) {
@@ -181,6 +190,7 @@ public class DataService {
                 : Map.of("message", "Device state unchanged");
     }
 
+    @Override
     public Map<String, Boolean> getDeviceModes(String userId) {
         List<Device> devices = deviceRepository.findByUserID(userId).stream().toList();
         Map<String, Boolean> response = new HashMap<>();

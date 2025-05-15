@@ -1,6 +1,7 @@
 package com.javaweb.yolo_farm.controller;
 
-import com.javaweb.yolo_farm.service.SystemService;
+import com.javaweb.yolo_farm.service.ISystemService;
+import com.javaweb.yolo_farm.service.impl.SystemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -13,7 +14,7 @@ import java.util.Map;
 public class SystemController {
 
     @Autowired
-    private SystemService systemService;
+    private ISystemService systemService;
 
     private String getUserId() {
         return SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();

@@ -1,4 +1,4 @@
-package com.javaweb.yolo_farm.service;
+package com.javaweb.yolo_farm.service.impl;
 
 import com.javaweb.yolo_farm.dto.response.LogResponse;
 import com.javaweb.yolo_farm.dto.response.NotificationResponse;
@@ -6,6 +6,7 @@ import com.javaweb.yolo_farm.model.ActivityLog;
 import com.javaweb.yolo_farm.model.Notification;
 import com.javaweb.yolo_farm.repository.ActivityLogRepository;
 import com.javaweb.yolo_farm.repository.NotificationRepository;
+import com.javaweb.yolo_farm.service.ILogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class LogService {
+public class LogService implements ILogService {
 
     @Autowired
     private ActivityLogRepository activityLogRepository;
@@ -23,6 +24,7 @@ public class LogService {
     @Autowired
     private NotificationRepository notificationRepository;
 
+    @Override
     public List<LogResponse> getLogs(String userId) {
         Date dat = new Date();
         dat.setDate(dat.getDate() - 30);
@@ -43,6 +45,7 @@ public class LogService {
         }).collect(Collectors.toList());
     }
 
+    @Override
     public List<NotificationResponse> getNotifications(String userId) {
         Date dat = new Date();
         dat.setDate(dat.getDate() - 30);

@@ -1,4 +1,4 @@
-package com.javaweb.yolo_farm.service;
+package com.javaweb.yolo_farm.service.impl;
 
 import com.javaweb.yolo_farm.model.User;
 import com.javaweb.yolo_farm.repository.UserRepository;

@@ -1,7 +1,8 @@
-package com.javaweb.yolo_farm.service;
+package com.javaweb.yolo_farm.service.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.javaweb.yolo_farm.service.IAdafruitService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 @Service
-public class AdafruitService {
+public class AdafruitService implements IAdafruitService {
 
     @Value("${aio.username}")
     private String AIO_USERNAME;
@@ -27,6 +28,7 @@ public class AdafruitService {
         this.objectMapper = objectMapper;
     }
 
+    @Override
     public boolean controlDevice(String feedName, boolean value) {
         String url = String.format("https://io.adafruit.com/api/v2/%s/feeds/%s/data", AIO_USERNAME, feedName);
         HttpHeaders headers = new HttpHeaders();
@@ -44,6 +46,7 @@ public class AdafruitService {
         }
     }
 
+    @Override
     public double fetchData(String feedName) {
         String url = String.format("https://io.adafruit.com/api/v2/%s/feeds/%s/data/last", AIO_USERNAME, feedName);
 

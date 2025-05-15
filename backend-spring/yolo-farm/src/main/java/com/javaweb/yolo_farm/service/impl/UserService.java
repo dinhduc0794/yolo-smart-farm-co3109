@@ -1,9 +1,10 @@
-package com.javaweb.yolo_farm.service;
+package com.javaweb.yolo_farm.service.impl;
 
 import com.javaweb.yolo_farm.dto.request.UpdatePasswordRequest;
 import com.javaweb.yolo_farm.dto.request.UpdateUserRequest;
 import com.javaweb.yolo_farm.model.User;
 import com.javaweb.yolo_farm.repository.UserRepository;
+import com.javaweb.yolo_farm.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -12,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class UserService {
+public class UserService implements IUserService {
 
     @Autowired
     private UserRepository userRepository;
@@ -20,11 +21,13 @@ public class UserService {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
+    @Override
     public User getUser(String userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
+    @Override
     public Map<String, String> updateUser(String userId, UpdateUserRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));

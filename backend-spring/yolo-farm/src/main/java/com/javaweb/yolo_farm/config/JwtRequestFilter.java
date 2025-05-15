@@ -1,8 +1,6 @@
 package com.javaweb.yolo_farm.config;
 
-import com.javaweb.yolo_farm.model.User;
-import com.javaweb.yolo_farm.repository.UserRepository;
-import com.javaweb.yolo_farm.service.CustomUserDetailsService;
+import com.javaweb.yolo_farm.service.impl.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;

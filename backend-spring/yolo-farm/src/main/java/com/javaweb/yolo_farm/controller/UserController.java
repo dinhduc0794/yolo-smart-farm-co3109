@@ -2,7 +2,8 @@ package com.javaweb.yolo_farm.controller;
 
 import com.javaweb.yolo_farm.dto.request.UpdatePasswordRequest;
 import com.javaweb.yolo_farm.dto.request.UpdateUserRequest;
-import com.javaweb.yolo_farm.service.UserService;
+import com.javaweb.yolo_farm.service.IUserService;
+import com.javaweb.yolo_farm.service.impl.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,7 +16,7 @@ import java.util.Map;
 public class UserController {
 
     @Autowired
-    private UserService userService;
+    private IUserService userService;
 
     private String getUserId() {
         return SecurityContextHolder.getContext().getAuthentication().getName();

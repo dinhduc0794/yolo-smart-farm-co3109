@@ -1,10 +1,11 @@
-package com.javaweb.yolo_farm.service;
+package com.javaweb.yolo_farm.service.impl;
 
 import com.javaweb.yolo_farm.dto.request.SignInRequest;
 import com.javaweb.yolo_farm.dto.request.SignUpRequest;
 import com.javaweb.yolo_farm.model.User;
 import com.javaweb.yolo_farm.repository.UserRepository;
 import com.javaweb.yolo_farm.config.JwtUtil;
+import com.javaweb.yolo_farm.service.IAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -13,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class AuthService {
+public class AuthService implements IAuthService {
 
     @Autowired
     private UserRepository userRepository;
@@ -24,6 +25,7 @@ public class AuthService {
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
+    @Override
     public Map<String, String> signUp(SignUpRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             return Map.of("error", "User already exists with that email");
@@ -43,6 +45,7 @@ public class AuthService {
         return Map.of("message", "saved successfully");
     }
 
+    @Override
     public Map<String, Object> signIn(SignInRequest request) {
         if (request.getEmail() == null || request.getPassword() == null) {
             return Map.of("error", "please add email or password");
