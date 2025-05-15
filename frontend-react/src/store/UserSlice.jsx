@@ -50,6 +50,7 @@ export const updateUserProfile = createAsyncThunk(
   "user/updateProfile",
   async (userData, { rejectWithValue }) => {
     try {
+      // userData should be in format: { name, email, address, phoneno }
       const token = getAuthToken();
       const response = await fetch(`${BASE_URL}`, {
         method: 'POST',

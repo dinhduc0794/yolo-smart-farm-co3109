@@ -85,6 +85,7 @@ const PersonalInfoForm = () => {
     if (!validateForm()) return;
     dispatch(updateUserProfile({
       name: formData.fullName,
+      email: formData.email,
       phoneno: formData.phoneNumber,
       address: formData.address,
     }));
